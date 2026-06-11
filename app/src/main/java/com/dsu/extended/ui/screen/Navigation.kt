@@ -78,10 +78,12 @@ fun Navigation() {
     val currentRoute = backStackEntry?.destination?.route
     val showMainTabs = currentRoute == Destinations.Homepage || currentRoute == Destinations.Logs
 
-    // Global back handler to intercept system back gesture and disable predictive scaling
-    // Only enabled for non-main routes to allow custom slide animations
-    BackHandler(enabled = !isMainTabRoute(currentRoute)) {
-        navController.navigateUp()
+    // Global back handler - disable on main tabs to avoid system gesture intercept issues
+    // For sub-screens, this prevents predictive scaling while allowing custom pop transitions
+    if (!isMainTabRoute(currentRoute)) {
+        BackHandler {
+            navController.navigateUp()
+        }
     }
 
     Scaffold(

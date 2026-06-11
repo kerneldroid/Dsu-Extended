@@ -2,8 +2,9 @@
 
 Modern, feature-rich DSU (Dynamic System Update) installer for Android. Designed for ease of use and maximum compatibility.
 
-![Preview 1](docs/images/preview_1.jpg)
-![Preview 2](docs/images/preview_2.jpg)
+| Preview 1 | Preview 2 |
+| :---: | :---: |
+| ![Preview 1](docs/images/preview_1.jpg) | ![Preview 2](docs/images/preview_2.jpg) |
 
 ## Features
 - **Root/Shizuku/Dhizuku Support:** Works across various privilege levels.

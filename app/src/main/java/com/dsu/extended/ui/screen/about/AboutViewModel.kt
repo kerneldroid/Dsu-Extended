@@ -48,6 +48,7 @@ class AboutViewModel @Inject constructor(
     var developerOptionsCounter = 0
 
     init {
+        // ALWAYS enable updater for debug builds or builds signed by author
         val isSignedByAuthor = application.isBuildSignedByAuthor()
         _uiState.update { it.copy(isUpdaterAvailable = isSignedByAuthor || BuildConfig.DEBUG) }
     }
@@ -63,28 +64,24 @@ class AboutViewModel @Inject constructor(
         AppLogger.i(tag, "Checking updates", "url" to BuildConfig.UPDATE_CHECK_URL)
         updateUpdaterCard { it.copy(updateStatus = UpdateStatus.CHECKING_FOR_UPDATES) }
         viewModelScope.launch(Dispatchers.IO) {
-            val apiResponse = try {
-                URL(BuildConfig.UPDATE_CHECK_URL).readText()
+            try {
+                val apiResponse = URL(BuildConfig.UPDATE_CHECK_URL).readText()
+                AppLogger.d(tag, "Update check response received", "raw" to apiResponse)
+                
+                response = Json.decodeFromString(UpdaterResponse.serializer(), apiResponse)
+                
+                updateUpdaterCard { it.copy(updateVersion = response.versionName) }
+                if (response.versionCode > BuildConfig.VERSION_CODE) {
+                    updateUpdaterCard { it.copy(updateStatus = UpdateStatus.UPDATE_FOUND) }
+                    AppLogger.i(tag, "Update found!", "version" to response.versionName)
+                } else {
+                    updateUpdaterCard { it.copy(updateStatus = UpdateStatus.NO_UPDATE_FOUND) }
+                    AppLogger.i(tag, "No update found", "latest" to response.versionName, "current" to BuildConfig.VERSION_CODE)
+                }
             } catch (e: Exception) {
-                AppLogger.e(tag, "Failed to fetch update metadata", e, "url" to BuildConfig.UPDATE_CHECK_URL)
-                updateUpdaterCard { it.copy(updateStatus = UpdateStatus.NO_UPDATE_FOUND) }
-                return@launch
-            }
-            response = Json.decodeFromString(UpdaterResponse.serializer(), apiResponse)
-            updateUpdaterCard { it.copy(updateVersion = response.versionName) }
-            if (response.versionCode > BuildConfig.VERSION_CODE) {
-                updateUpdaterCard { it.copy(updateStatus = UpdateStatus.UPDATE_FOUND) }
-            } else {
+                AppLogger.e(tag, "Failed to fetch or parse update metadata", e, "url" to BuildConfig.UPDATE_CHECK_URL)
                 updateUpdaterCard { it.copy(updateStatus = UpdateStatus.NO_UPDATE_FOUND) }
             }
-
-            AppLogger.i(
-                tag,
-                "Update metadata parsed",
-                "identifier" to response.identifier,
-                "versionCode" to response.versionCode,
-                "versionName" to response.versionName,
-            )
         }
     }
 
@@ -95,56 +92,49 @@ class AboutViewModel @Inject constructor(
         updateUpdaterCard { it.copy(isDownloading = true) }
         viewModelScope.launch(Dispatchers.IO) {
             val finalFile = File(application.filesDir.path + "/update.apk")
-            val length = try {
-                URL(response.apkUrl).openConnection().contentLengthLong
-            } catch (e: Exception) {
-                AppLogger.e(tag, "Failed to query update size", e, "apkUrl" to response.apkUrl)
-                updateUpdaterCard { it.copy(isDownloading = false) }
-                return@launch
-            }
-            val input = try {
-                URL(response.apkUrl).openStream()
-            } catch (e: Exception) {
-                AppLogger.e(tag, "Failed to open update stream", e, "apkUrl" to response.apkUrl)
-                updateUpdaterCard { it.copy(isDownloading = false) }
-                return@launch
-            }
-            val output = FileOutputStream(finalFile)
-
-            val buffer = ByteArray(8 * 1024)
-            var n: Int
-            var readed: Long = 0
-            AppLogger.i(tag, "Downloading update", "apkUrl" to response.apkUrl, "expectedSize" to length)
-            while (-1 != input.read(buffer)
-                    .also { n = it }
-            ) {
-                readed += n.toLong()
-                output.write(buffer, 0, n)
-                if (length > 0) {
-                    updateUpdaterCard { it.copy(progressBar = readed.toFloat() / length.toFloat()) }
+            var currentReadBytes: Long = 0
+            try {
+                val connection = URL(response.apkUrl).openConnection()
+                connection.connect()
+                val length = connection.contentLengthLong
+                
+                URL(response.apkUrl).openStream().use { input ->
+                    FileOutputStream(finalFile).use { output ->
+                        val buffer = ByteArray(8 * 1024)
+                        var n: Int
+                        AppLogger.i(tag, "Downloading update", "apkUrl" to response.apkUrl, "expectedSize" to length)
+                        while (-1 != input.read(buffer).also { n = it }) {
+                            currentReadBytes += n.toLong()
+                            output.write(buffer, 0, n)
+                            if (length > 0) {
+                                updateUpdaterCard { it.copy(progressBar = currentReadBytes.toFloat() / length.toFloat()) }
+                            }
+                        }
+                    }
                 }
-            }
-            input.close()
-            output.close()
 
-            updateUpdaterCard { it.copy(isDownloading = false) }
-            AppLogger.i(tag, "Update downloaded", "path" to finalFile.path, "bytes" to readed)
-            val apkUri = FileProvider.getUriForFile(
-                application,
-                BuildConfig.APPLICATION_ID + ".provider",
-                finalFile,
-            )
-            val intent = Intent(Intent.ACTION_VIEW)
-            intent.setDataAndType(apkUri, "application/vnd.android.package-archive")
-            intent.flags += Intent.FLAG_ACTIVITY_NEW_TASK
-            intent.flags += Intent.FLAG_GRANT_READ_URI_PERMISSION
-            application.startActivity(intent)
+                updateUpdaterCard { it.copy(isDownloading = false) }
+                AppLogger.i(tag, "Update downloaded", "path" to finalFile.path, "bytes" to currentReadBytes)
+                val apkUri = FileProvider.getUriForFile(
+                    application,
+                    BuildConfig.APPLICATION_ID + ".provider",
+                    finalFile,
+                )
+                val intent = Intent(Intent.ACTION_VIEW)
+                intent.setDataAndType(apkUri, "application/vnd.android.package-archive")
+                intent.flags += Intent.FLAG_ACTIVITY_NEW_TASK
+                intent.flags += Intent.FLAG_GRANT_READ_URI_PERMISSION
+                application.startActivity(intent)
+            } catch (e: Exception) {
+                AppLogger.e(tag, "Failed to download update", e, "apkUrl" to response.apkUrl)
+                updateUpdaterCard { it.copy(isDownloading = false) }
+            }
         }
     }
 
     fun onClickImage() {
         developerOptionsCounter++
-        if (developerOptionsCounter > 7) {
+        if (developerOptionsCounter >= 7) {
             resetDeveloperOptionsCounter()
             viewModelScope.launch {
                 val newDevOptPrefValue = !readBoolPref(AppPrefs.DEVELOPER_OPTIONS)
