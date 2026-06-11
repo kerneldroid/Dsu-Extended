@@ -1,0 +1,330 @@
+<resources>
+    <string name="app_name" translatable="false">Dsu Extended</string>
+
+    <!--
+        Home screen
+     -->
+
+    <!-- Warning cards -->
+    <string name="unsupported">Unsupported</string>
+    <string name="device_unsupported_description">Your device does not support dynamic partitions (DSU requires dynamic partitions).</string>
+
+    <string name="setup_storage">Setup storage</string>
+    <string name="setup_storage_description">You need to select a folder to be used as application storage (required to store temporary files).\n\nPlease select or create a new folder and allow access to it.</string>
+    <string name="setup">Setup</string>
+
+    <string name="storage_warning">Storage warning</string>
+    <string name="storage_warning_description">You have less than %1$s%% of free storage, installation process will fail, please free up some space.</string>
+    <string name="continue_anyway">Continue anyway</string>
+
+    <string name="missing_permission">Missing permission</string>
+    <string name="missing_permission_description">Dsu Extended requires READ_LOGS permission (which allows logcat reading).\nThis permission is used to obtain installation progress and diagnose errors in DSU installation.\n\n** Granting this permission may require a application restart.</string>
+    <string name="granting_permission">Waiting service to grant permission, please wait…</string>
+
+    <string name="unlocked_bl_warn">Unlocked bootloader</string>
+    <string name="unlocked_bl_warn_desc">Dsu Extended requires unlocked bootloader, installing images with locked bootloader may be dangerous in some devices, before using this app, you: \n- MUST unlock bootloader.\n- MUST have some way to restore device stock firmware.\n- RECOMMENDED to do a full backup.\nThis app have been made to be used by developers and advanced users, you have been warned.</string>
+
+    <!-- Installation card -->
+    <string name="select_gsi_info">Select a file to be installed</string>
+    <string name="dsu_already_installed">A DSU installation is already present.</string>
+
+    <string name="selected_file">Selected file</string>
+    <string name="file_unsupported">Unsupported file</string>
+
+    <string name="clear">Clear</string>
+    <string name="install">Install</string>
+
+    <!-- Installation dialog -->
+    <string name="proceed_installation">Proceed installation?</string>
+    <string name="proceed_installation_description">Installation will be made using the parameters shown below:</string>
+
+    <!-- Discard installed DSU dialog -->
+    <string name="discard_dsu_question">Discard installation?</string>
+    <string name="dsu_already_installed_warning">All data present in installed DSU will be DELETED after discarding, are you sure?</string>
+
+    <!-- Preparation -->
+    <string name="decompressing_gz">Extracting gz file…</string>
+    <string name="decompressing_xz">Extracting xz file…</string>
+    <string name="compressing_to_gz">Preparing image file…</string>
+    <string name="extracting_file">Extracting file…</string>
+    <string name="copying_file">Copying file…</string>
+    <string name="processing">Processing…</string>
+    <string name="validating_image">Validating image…</string>
+
+    <!-- Installation -->
+    <string name="installation_prompt">Installation prompt invoked, waiting user confirmation to proceed..</string>
+
+    <string name="creating_partition">Creating %1$s partition</string>
+    <string name="installing_partition">Processing %1$s partition…</string>
+    <string name="installing">Installing…</string>
+
+    <!-- ADB install -->
+    <string name="require_adb_cmd_to_continue">Preparation done, a command is required to proceed with installation.</string>
+    <string name="see_commands">See commands</string>
+
+    <!-- Installation errors -->
+
+    <!-- Already running a installed DSU -->
+    <string name="already_running_dsu">Installing a DSU when running an installed DSU is not supported, please reboot your device to default OS.</string>
+
+    <!-- Already installed DSU card -->
+    <string name="discard_dsu_otg">A DSU installation is already present, discard to continue?\n\n**All data stored in DSU installation will be deleted.</string>
+    <string name="discarding">Discarding…</string>
+    <string name="discard_dsu">Discard DSU</string>
+
+    <!-- Allocation error card -->
+    <string name="allocation_error">Allocation error</string>
+    <string name="allocation_error_description">Allocation on sdcard isn\'t working, there are some fixes you can try:\n - Install Dsu Extended Magisk\'s module.\n - Unmount sdcard (you can set this option permanently in settings).</string>
+    <string name="allocation_error_action">Unmount SD and retry</string>
+
+    <!-- No free storage error card -->
+    <string name="storage_error">Storage error</string>
+    <string name="storage_error_description">Android requires at least %1$s%% of free storage to proceed installation, free up some space and try again.</string>
+
+    <!-- Filesystem features not found error card -->
+    <string name="fs_features_error">FS features unavailable</string>
+    <string name="fs_features_error_description">Your kernel is likely to be registering f2fs in different path that one expected from GSI daemon, there are some fixes you can try:\n - Install Dsu Extended Magisk\'s module.\n - Changing kernel.</string>
+
+    <!-- SELinux error card -->
+    <string name="selinux_error">SELinux error</string>
+    <string name="selinux_error_description">Looks like SELinux denials are preventing DSU installation, there are some fixes you can try:\n - Install Dsu Extended Magisk\'s module.\n - If you\'re using a sdcard, try to unmount it (there is a option for that in settings section).\n - Change your SELinux to permissive (not recommended, weakens your device security).</string>
+    <string name="selinux_error_action">Retry with permissive</string>
+
+    <!-- Extents error card -->
+    <string name="extents_error_title">Extents error</string>
+    <string name="extents_error_description">On Android 10 devices, images/filesystem needs to have more than 512 extents, there are some fixes you can try:\n - Install Dsu Extended Magisk\'s module.</string>
+
+    <!-- Other errors card -->
+    <string name="failed_create_partition">Failed to create %1$s partition.</string>
+    <string name="unknown_error">Unknown error.</string>
+    <string name="validation_timeout_message">Image validation timed out. The selected file source is too slow or unavailable.</string>
+    <string name="error">Error</string>
+    <string name="try_again">Try again</string>
+    <string name="view_logs">View logs</string>
+    <string name="installation_canceled">Installation canceled.</string>
+
+    <!-- Cancel installation dialog -->
+    <string name="cancel_installation_question">Cancel installation?</string>
+    <string name="cancel_installation_description">All progress made will be lost, are you sure?</string>
+
+    <!-- Installation finished card -->
+    <string name="installation_finished_rootless">Image installed successfully, check your notifications to boot into dynamic system.</string>
+    <string name="installation_finished">Installation finished.</string>
+    <string name="reboot_into_dsu">Reboot into DSU</string>
+    <string name="live_update_channel_name">Live installation updates</string>
+    <string name="live_update_channel_description">Progress and state updates for DSU installation</string>
+    <string name="live_update_notification_title">DSU install in progress</string>
+    <string name="live_update_notification_short_text">%1$d%%</string>
+    <string name="live_update_notification_success">Installation finished. Tap to open app.</string>
+    <string name="live_update_notification_success_reboot">Installation finished. Tap to reboot into DSU.</string>
+    <string name="live_update_notification_error">Installation failed. Tap to open app.</string>
+
+    <!-- Userdata card -->
+    <string name="userdata_size">Userdata size</string>
+    <string name="userdata_size_info">Size in gigabytes</string>
+    <string name="allowed_userdata_allocation">Maximum available for allocation: %1$sGB</string>
+
+    <!-- Image size card -->
+    <string name="image_size">Image size</string>
+    <string name="image_size_info">Size in bytes</string>
+    <string name="not_recommended_option">This option is strongly inadvisable!</string>
+
+    <!-- Image size dialog -->
+    <string name="dialog_image_size">Set image size?</string>
+    <string name="dialog_image_size_description">Dsu Extended will set this parameter for you automatically, setting image size manually is strongly inadvisable.</string>
+    <string name="set_anyway">Set anyway</string>
+
+    <!-- What is DSU card -->
+    <string name="what_is_dsu">What is DSU?</string>
+    <string name="what_is_dsu_description">DSU (Dynamic System Updates) is a feature introduced in Android 10 that allow developers to test Android system images without touching device partitions, with Android 11, DSU can also replace multiple partitions.</string>
+    <string name="view_docs">View docs</string>
+    <string name="learn_more">Learn more</string>
+
+    <!--
+        Settings screen
+    -->
+
+    <string name="settings">Settings</string>
+
+    <string name="experimental_feature">Experimental feature</string>
+    <string name="experimental_feature_description">This feature is under testing and may be unstable, are you sure?</string>
+
+    <string name="builtin_installer">Built-in installer</string>
+    <string name="builtin_installer_description">Faster, use internal APIs to install images directly</string>
+    <string name="requires_root">Requires root</string>
+
+    <string name="unmount_sd_title">Unmount SD</string>
+    <string name="unmount_sd_description">Temporary unmount sd when installing</string>
+
+    <string name="warning_storage_check_title">Warning</string>
+    <string name="warning_storage_check_description">DSU installation will allocate some free space on your device, disabling storage checks may let into errors.\nThis option is not recommended. Only continue if you know what you\'re doing!</string>
+
+    <string name="storage_check_title">Disable storage check</string>
+    <string name="storage_check_description">Disable userdata storage checking, not recommended</string>
+
+    <string name="full_logcat_logging_title">Full logcat logging</string>
+    <string name="full_logcat_logging_description">Logs section will capture logs with no filters, may degrade app performance</string>
+
+    <string name="keep_screen_on">Keep screen on</string>
+
+    <string name="developer_options">Developer options</string>
+
+    <string name="other">Other</string>
+
+    <string name="operation_mode">Operation mode</string>
+    <string name="operation_mode_preferred_all">Preferred: ALL</string>
+    <string name="operation_mode_preferred_auto">Preferred: Auto</string>
+    <string name="operation_mode_preferred_root">Preferred: Root</string>
+    <string name="operation_mode_preferred_shizuku">Preferred: Shizuku</string>
+    <string name="operation_mode_preferred_dhizuku">Preferred: Dhizuku</string>
+
+    <string name="operation_mode_force_all">Check ALL (auto select)</string>
+    <string name="operation_mode_force_all_description">Check Root, Dhizuku and Shizuku, then use first available backend</string>
+    <string name="operation_mode_force_root">Force Root mode</string>
+    <string name="operation_mode_force_root_description">Always use Root when available</string>
+    <string name="operation_mode_force_shizuku">Force Shizuku mode</string>
+    <string name="operation_mode_force_shizuku_description">Use Shizuku instead of Root when both are available</string>
+    <string name="operation_mode_force_dhizuku">Force Dhizuku mode</string>
+    <string name="operation_mode_force_dhizuku_description">Use Dhizuku Device Owner backend when available</string>
+    <string name="operation_mode_force_auto">Auto mode selection</string>
+    <string name="operation_mode_force_auto_description">Use automatic mode priority</string>
+
+    <string name="theme_mode">Theme mode</string>
+    <string name="theme_mode_system">System</string>
+    <string name="theme_mode_light">Light</string>
+    <string name="theme_mode_dark">Dark</string>
+    <string name="theme_mode_oled">OLED Black</string>
+    <string name="app_font_title">App font</string>
+    <string name="app_font_system_default">System default</string>
+
+    <string name="material_color_style">Material color style</string>
+    <string name="material_color_style_tonal_spot">Tonal Spot</string>
+    <string name="material_color_style_expressive">Expressive</string>
+    <string name="material_color_style_vibrant">Vibrant</string>
+    <string name="material_color_style_monochrome">Monochrome</string>
+
+    <string name="dynamic_color_title">Use dynamic color</string>
+    <string name="dynamic_color_description_on">Material You colors from wallpaper seed (Android 12+), with selected palette style</string>
+    <string name="dynamic_color_description_off">Use selected Material Color palette</string>
+
+    <string name="about">About</string>
+    <string name="about_description">Credits, libraries and more…</string>
+
+    <!--
+        About screen
+    -->
+
+    <string name="version_info">version %1$s (%2$d)</string>
+    <string name="check_updates_title">Check updates</string>
+    <string name="check_updates_text_idle">Tap to check</string>
+    <string name="check_updates_text_found">New %1$s version found</string>
+    <string name="check_updates_text_updated">Running latest version</string>
+    <string name="check_all_title">Check ALL</string>
+    <string name="check_all_status_available">available</string>
+    <string name="check_all_status_unavailable">unavailable</string>
+    <string name="check_all_root_short">Root: %1$s</string>
+    <string name="check_all_shizuku_short">Shizuku: %1$s</string>
+    <string name="check_all_dhizuku_short">Dhizuku: %1$s</string>
+    <string name="check_all_result_ready">GSI privileged launch: available</string>
+    <string name="check_all_result_unavailable">GSI privileged launch: unavailable</string>
+    <string name="check_all_action_recheck">Recheck</string>
+    <string name="changelog">Changelog</string>
+    <string name="download">Download</string>
+
+    <string name="application">Application</string>
+
+    <string name="developer_options_enabled">Developer options enabled</string>
+    <string name="developer_options_disabled">Developer options disabled</string>
+
+    <string name="github_repo">GitHub Repository</string>
+    <string name="github_repo_description">Source code on GitHub</string>
+
+    <string name="collaborators">Collaborators</string>
+
+    <string name="libraries_title">Libraries</string>
+    <string name="libraries_description">Libraries used in this app</string>
+
+    <string name="role_developer">Developer</string>
+    <string name="role_second_developer">2nd dev</string>
+    <string name="role_design_icon">Design reference, app icon</string>
+
+    <string name="translators_title">Translators</string>
+
+    <string name="translators_list" comment="Hello translator, since you have translated our app, feel free to put your name inside &quot;translators_list&quot;, it will be shown on about screen.&#10;If there is more than one translator, append names and separate each one by using a comma, like:&#10;Collaborator 1, Collaborator 2, Collaborator 3">translators_list</string>
+
+    <string name="contributors_title">Contributors</string>
+    <string name="contributors_text">People that helped with this project</string>
+
+    <!--
+        ADB screen
+    -->
+
+    <string name="adb_how_to_adb_shell">To start installation on non-rooted devices, you need to run this command on adb shell:</string>
+    <string name="adb_how_to_shell">If you\'re running adb shell without PC (eg: LADB, Shizuku\'s Rish, WebADB, Bugjaeger..), you should run this command instead:</string>
+    <string name="adb_how_to_done">Once it\'s done, check your notifications to follow installation process, you can also close this app.</string>
+
+    <string name="copy_text">Copy text</string>
+    <string name="copied">Copied</string>
+
+    <!--
+        View logs screen
+    -->
+
+    <string name="logs_tab_title">Logs</string>
+    <string name="logs_title">Logs</string>
+    <string name="logs_cat_title">Cat (Experimental)</string>
+    <string name="logs_cat_description">Collect logcat and kernel snapshots. With root, dmesg and pstore are included for boot-failure diagnostics.</string>
+    <string name="logs_cat_capture">Capture Cat</string>
+    <string name="logs_cat_running">Capturing…</string>
+    <string name="logs_filters_title">Filters</string>
+    <string name="logs_filter_type">Log type</string>
+    <string name="logs_filter_type_all">All</string>
+    <string name="logs_filter_type_installation">Installation</string>
+    <string name="logs_filter_type_auto">Auto mode</string>
+    <string name="logs_filter_type_cat">Cat</string>
+    <string name="logs_filter_date">Date</string>
+    <string name="logs_filter_date_all">All time</string>
+    <string name="logs_filter_date_today">Today</string>
+    <string name="logs_filter_date_week">Last 7 days</string>
+    <string name="logs_empty">No logs yet. Run installation or capture Cat to create logs.</string>
+    <string name="logs_action_read">Read</string>
+    <string name="logs_action_share">Share</string>
+    <string name="logs_action_rename">Rename</string>
+    <string name="logs_action_delete">Delete</string>
+    <string name="logs_rename_title">Rename log</string>
+    <string name="logs_rename_confirm">Rename</string>
+    <string name="logs_open_tab_content_desc">Open logs tab</string>
+    <string name="logs_share_chooser">Share log file</string>
+    <string name="logs_status_renamed">Log renamed</string>
+    <string name="logs_status_rename_failed">Rename failed</string>
+    <string name="logs_status_deleted">Log deleted</string>
+    <string name="logs_status_delete_failed">Delete failed</string>
+    <string name="logs_status_cat_saved">Cat snapshot saved</string>
+    <string name="logs_status_cat_failed">Cat snapshot failed: %1$s</string>
+    <string name="logs_status_share_failed">Failed to share log</string>
+
+    <string name="installation_logs">Installation logs</string>
+    <string name="save_logs">Save logs</string>
+    <string name="saved_logs">Logs saved!</string>
+
+    <!--
+        Generic and multipurpose strings
+     -->
+
+    <string name="no">No</string>
+    <string name="yes">Yes</string>
+    <string name="ok">OK</string>
+
+    <string name="grant">Grant</string>
+    <string name="refuse">Refuse</string>
+    <string name="proceed">Proceed</string>
+    <string name="cancel">Cancel</string>
+    <string name="close">Close</string>
+    <string name="mreturn">Return</string>
+
+    <string name="installation">Installation</string>
+    <string name="discard">Discard</string>
+
+    <string name="close_app">Close app</string>
+    <string name="close_app_question">Close app?</string>
+</resources>

@@ -1,0 +1,29 @@
+# Build artifacts
+.gradle
+.kotlin
+build/
+app/build/
+hidden-api-stub/build/
+
+# Signing files
+.sign/
+*.jks
+*.keystore
+*.prop
+
+# Local configuration
+local.properties
+.env
+build_log.txt
+dependency_parser.py
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# System files
+.DS_Store
+captures/
+.externalNativeBuild/
+.cxx/
