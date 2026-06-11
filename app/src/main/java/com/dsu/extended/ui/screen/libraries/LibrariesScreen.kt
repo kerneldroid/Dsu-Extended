@@ -1,5 +1,6 @@
 package com.dsu.extended.ui.screen.libraries
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -40,6 +41,7 @@ private val fallbackLibraries = listOf(
     LibraryEntry("AndroidX Compose", "Apache-2.0", "https://developer.android.com/jetpack/compose"),
     LibraryEntry("Material 3", "Apache-2.0", "https://m3.material.io"),
     LibraryEntry("Navigation Compose", "Apache-2.0", "https://developer.android.com/jetpack/compose/navigation"),
+    LibraryEntry("DataStore", "Apache-2.0", "https://developer.android.com/topic/libraries/architecture/datastore"),
     LibraryEntry("DataStore", "Apache-2.0", "https://developer.android.com/topic/libraries/architecture/datastore"),
     LibraryEntry("Dagger Hilt", "Apache-2.0", "https://dagger.dev/hilt"),
     LibraryEntry("Kotlin Serialization", "Apache-2.0", "https://github.com/Kotlin/kotlinx.serialization"),
@@ -85,6 +87,10 @@ private fun mergeLibraries(
 fun LibrariesScreen(
     navigate: (String) -> Unit,
 ) {
+    BackHandler {
+        navigate(Destinations.Up)
+    }
+
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val libraries = remember(context) {

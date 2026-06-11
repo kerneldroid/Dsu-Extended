@@ -1,5 +1,6 @@
 package com.dsu.extended.ui.screen.adb
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,6 +22,10 @@ fun AdbScreen(
     navigate: (String) -> Unit,
     adbViewModel: AdbViewModel = hiltViewModel(),
 ) {
+    BackHandler {
+        navigate(Destinations.Up)
+    }
+
     val scriptPath = adbViewModel.obtainScriptPath()
 
     val startInstallationCommand = "sh \"$scriptPath\""

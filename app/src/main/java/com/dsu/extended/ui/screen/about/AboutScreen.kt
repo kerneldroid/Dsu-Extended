@@ -1,6 +1,7 @@
 package com.dsu.extended.ui.screen.about
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Description
@@ -25,7 +26,7 @@ import com.dsu.extended.ui.components.SimpleCard
 import com.dsu.extended.ui.components.Title
 import com.dsu.extended.ui.components.TopBar
 import com.dsu.extended.ui.screen.Destinations
-import com.dsu.extended.util.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 object AboutLinks {
     const val CONTRIBUTORS_URL = "https://github.com/m3dsgn/dsu-extended/graphs/contributors"
@@ -44,6 +45,10 @@ fun AboutScreen(
     val uiState by aboutViewModel.uiState.collectAsStateWithLifecycle()
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
+
+    BackHandler {
+        navigate(Destinations.Up)
+    }
 
     LaunchedEffect(Unit) {
         aboutViewModel.resetDeveloperOptionsCounter()

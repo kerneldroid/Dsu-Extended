@@ -1,5 +1,6 @@
 package com.dsu.extended.ui.screen.settings
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -8,19 +9,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.dsu.extended.R
 import com.dsu.extended.ui.components.ApplicationScreen
 import com.dsu.extended.ui.components.PreferenceItem
 import com.dsu.extended.ui.components.TopBar
 import com.dsu.extended.ui.screen.Destinations
-import com.dsu.extended.util.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,6 +29,12 @@ fun Settings(
     settingsViewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
+
+    // Intercept back gesture to disable system predictive scaling
+    // and use our custom slide-out animation instead.
+    BackHandler(enabled = uiState.dialogSheetState == DialogSheetState.NONE) {
+        navigate(Destinations.Up)
+    }
 
     ApplicationScreen(
         modifier = Modifier.padding(horizontal = 12.dp),
