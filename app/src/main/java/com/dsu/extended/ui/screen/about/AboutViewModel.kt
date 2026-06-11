@@ -65,7 +65,10 @@ class AboutViewModel @Inject constructor(
         updateUpdaterCard { it.copy(updateStatus = UpdateStatus.CHECKING_FOR_UPDATES) }
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val apiResponse = URL(BuildConfig.UPDATE_CHECK_URL).readText()
+                val connection = URL(BuildConfig.UPDATE_CHECK_URL).openConnection()
+                connection.connectTimeout = 10000
+                connection.readTimeout = 10000
+                val apiResponse = connection.getInputStream().bufferedReader().use { it.readText() }
                 AppLogger.d(tag, "Update check response received", "raw" to apiResponse)
                 
                 response = Json.decodeFromString(UpdaterResponse.serializer(), apiResponse)
@@ -95,10 +98,16 @@ class AboutViewModel @Inject constructor(
             var currentReadBytes: Long = 0
             try {
                 val connection = URL(response.apkUrl).openConnection()
+                connection.connectTimeout = 15000
+                connection.readTimeout = 30000
                 connection.connect()
-                val length = connection.contentLengthLong
+                val length = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    connection.contentLengthLong
+                } else {
+                    connection.contentLength.toLong()
+                }
                 
-                URL(response.apkUrl).openStream().use { input ->
+                connection.getInputStream().use { input ->
                     FileOutputStream(finalFile).use { output ->
                         val buffer = ByteArray(8 * 1024)
                         var n: Int
@@ -127,7 +136,7 @@ class AboutViewModel @Inject constructor(
                 application.startActivity(intent)
             } catch (e: Exception) {
                 AppLogger.e(tag, "Failed to download update", e, "apkUrl" to response.apkUrl)
-                updateUpdaterCard { it.copy(isDownloading = false) }
+                updateUpdaterCard { it.copy(isDownloading = false, progressBar = 0f) }
             }
         }
     }

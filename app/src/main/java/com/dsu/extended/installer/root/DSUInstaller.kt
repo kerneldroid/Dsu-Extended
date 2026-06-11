@@ -299,7 +299,10 @@ class DSUInstaller(
 
             Type.URL -> {
                 val url = URL(dsuInstallation.uri.toString())
-                installStreamingZipUpdate(url.openStream())
+                val connection = url.openConnection()
+                connection.connectTimeout = 15000
+                connection.readTimeout = 60000
+                installStreamingZipUpdate(connection.getInputStream())
             }
 
             else -> {}

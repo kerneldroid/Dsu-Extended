@@ -78,6 +78,24 @@ fun Navigation() {
     val currentRoute = backStackEntry?.destination?.route
     val showMainTabs = currentRoute == Destinations.Homepage || currentRoute == Destinations.Logs
 
+    val navigate: (String) -> Unit = androidx.compose.runtime.remember(navController) {
+        { destination ->
+            if (destination == Destinations.Up) {
+                navController.navigateUp()
+            } else if (isMainTabRoute(destination)) {
+                navController.navigate(destination) {
+                    launchSingleTop = true
+                    restoreState = true
+                    popUpTo(Destinations.Homepage) {
+                        saveState = true
+                    }
+                }
+            } else {
+                navController.navigate(destination)
+            }
+        }
+    }
+
     // Global back handler - disable on main tabs to avoid system gesture intercept issues
     // For sub-screens, this prevents predictive scaling while allowing custom pop transitions
     if (!isMainTabRoute(currentRoute)) {
@@ -116,26 +134,6 @@ fun Navigation() {
             startDestination = Destinations.Homepage,
             modifier = Modifier.fillMaxSize(),
         ) {
-                fun navigate(destination: String) {
-                    if (destination == Destinations.Up) {
-                        navController.navigateUp()
-                        return
-                    }
-
-                    if (isMainTabRoute(destination)) {
-                        navController.navigate(destination) {
-                            launchSingleTop = true
-                            restoreState = true
-                            popUpTo(Destinations.Homepage) {
-                                saveState = true
-                            }
-                        }
-                        return
-                    }
-
-                    navController.navigate(destination)
-                }
-
                 composable(
                     route = Destinations.Homepage,
                     enterTransition = { mainTabEnterTransition() },

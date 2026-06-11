@@ -51,10 +51,6 @@ class PrivilegedService : IPrivilegedService.Stub() {
         return Process.myUid()
     }
 
-    //
-    // Activity Manager
-    //
-
     private var ACTIVITY_MANAGER: IActivityManager? = null
 
     private fun requiresActivityManager() {
@@ -105,10 +101,6 @@ class PrivilegedService : IPrivilegedService.Stub() {
         ACTIVITY_MANAGER!!.forceStopPackage(packageName, 0)
     }
 
-    //
-    // Package Manager
-    //
-
     private var PACKAGE_MANAGER: IPackageManager? = null
 
     private fun requiresPackageManager() {
@@ -121,10 +113,6 @@ class PrivilegedService : IPrivilegedService.Stub() {
         requiresPackageManager()
         PACKAGE_MANAGER!!.grantRuntimePermission(BuildConfig.APPLICATION_ID, permissionName, 0)
     }
-
-    //
-    // Storage Manager
-    //
 
     private var STORAGE_MANAGER: IStorageManager? = null
 
