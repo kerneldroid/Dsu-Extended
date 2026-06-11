@@ -1,5 +1,6 @@
 package com.dsu.extended.ui.screen
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -20,7 +21,6 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.Modifier
@@ -78,6 +78,12 @@ fun Navigation() {
     val currentRoute = backStackEntry?.destination?.route
     val showMainTabs = currentRoute == Destinations.Homepage || currentRoute == Destinations.Logs
 
+    // Global back handler to intercept system back gesture and disable predictive scaling
+    // Only enabled for non-main routes to allow custom slide animations
+    BackHandler(enabled = !isMainTabRoute(currentRoute)) {
+        navController.navigateUp()
+    }
+
     Scaffold(
         bottomBar = {
             androidx.compose.animation.AnimatedVisibility(
@@ -103,7 +109,6 @@ fun Navigation() {
             }
         },
     ) { innerPadding ->
-        // NavHost must have stable bounds to prevent jumping during transitions
         NavHost(
             navController = navController,
             startDestination = Destinations.Homepage,
@@ -136,7 +141,6 @@ fun Navigation() {
                     popEnterTransition = { DSUAnimations.screenPopEnterAnimation },
                     popExitTransition = { DSUAnimations.screenPopExitAnimation },
                 ) {
-                    // Padding is applied inside the screen to keep NavHost stable
                     Box(modifier = Modifier.padding(bottom = if (showMainTabs) innerPadding.calculateBottomPadding() else 0.dp)) {
                         Home(navigate = { navigate(it) })
                     }

@@ -33,10 +33,10 @@ extensions.configure<ApplicationExtension>("android") {
         this.versionName = versionName
         val updateCheckUrl =
             (project.findProperty("UPDATE_CHECK_URL") as? String)
-                ?: "https://raw.githubusercontent.com/m3dsgn/dsu-extended/main/other/updater.json"
+                ?: "https://raw.githubusercontent.com/kerneldroid/Dsu-Extended/master/other/updater.json"
         val authorSignDigest =
             (project.findProperty("AUTHOR_SIGN_DIGEST") as? String)
-                ?: "0da046eb480972124e2fe2251ebc5b19ea9e13d9"
+                ?: "48d04cac11d09be0b180d399d0c747e86e700a8c"
         buildConfigField("String", "UPDATE_CHECK_URL", "\"$updateCheckUrl\"")
         buildConfigField("String", "AUTHOR_SIGN_DIGEST", "\"$authorSignDigest\"")
         minSdk = 29

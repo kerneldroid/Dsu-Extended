@@ -1,6 +1,5 @@
 package com.dsu.extended.ui.screen.settings
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -29,12 +28,6 @@ fun Settings(
     settingsViewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
-
-    // Intercept back gesture to disable system predictive scaling
-    // and use our custom slide-out animation instead.
-    BackHandler(enabled = uiState.dialogSheetState == DialogSheetState.NONE) {
-        navigate(Destinations.Up)
-    }
 
     ApplicationScreen(
         modifier = Modifier.padding(horizontal = 12.dp),

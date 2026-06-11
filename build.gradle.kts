@@ -10,8 +10,8 @@ plugins {
     id("org.jmailen.kotlinter") version "5.4.0" apply false
 }
 
-val versionCode = extra.set("versionCode", 14)
-val versionName = extra.set("versionName", "1.0")
+val versionCode = extra.set("versionCode", 15)
+val versionName = extra.set("versionName", "1.1")
 val packageName = extra.set("packageName", "com.dsu.extended")
 
 tasks.register<Delete>("clean") {

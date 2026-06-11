@@ -1,7 +1,6 @@
 package com.dsu.extended.ui.screen.about
 
 import android.widget.Toast
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Description
@@ -29,11 +28,12 @@ import com.dsu.extended.ui.screen.Destinations
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 object AboutLinks {
-    const val CONTRIBUTORS_URL = "https://github.com/m3dsgn/dsu-extended/graphs/contributors"
-    const val REPOSITORY_URL = "https://github.com/m3dsgn/dsu-extended.git"
+    const val CONTRIBUTORS_URL = "https://github.com/kerneldroid/Dsu-Extended/graphs/contributors"
+    const val REPOSITORY_URL = "https://github.com/kerneldroid/Dsu-Extended"
     const val WSTXDA_GITHUB = "https://github.com/WSTxda"
     const val VEGABOBO_GITHUB = "https://github.com/VegaBobo"
-    const val M3DSGN_PORTFOLIO = "https://github.com/m3dsgn"
+    const val KERNELDROID_GITHUB = "https://github.com/kerneldroid"
+    const val SENODROID_GITHUB = "https://github.com/senodroid"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,10 +45,6 @@ fun AboutScreen(
     val uiState by aboutViewModel.uiState.collectAsStateWithLifecycle()
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
-
-    BackHandler {
-        navigate(Destinations.Up)
-    }
 
     LaunchedEffect(Unit) {
         aboutViewModel.resetDeveloperOptionsCounter()
@@ -123,16 +119,22 @@ fun AboutScreen(
             addPadding = false,
         ) {
             PreferenceItem(
+                title = "kerneldroid",
+                description = "Main Developer",
+                icon = Icons.Rounded.NewReleases,
+                onClick = { uriHandler.openUri(AboutLinks.KERNELDROID_GITHUB) },
+            )
+            PreferenceItem(
+                title = "senodroid",
+                description = "Original Fork Author",
+                icon = Icons.Rounded.Description,
+                onClick = { uriHandler.openUri(AboutLinks.SENODROID_GITHUB) },
+            )
+            PreferenceItem(
                 title = "VegaBobo",
                 description = stringResource(id = R.string.role_developer),
                 icon = Icons.Rounded.NewReleases,
                 onClick = { uriHandler.openUri(AboutLinks.VEGABOBO_GITHUB) },
-            )
-            PreferenceItem(
-                title = "m3dsgn",
-                description = stringResource(id = R.string.role_second_developer),
-                icon = Icons.Rounded.Description,
-                onClick = { uriHandler.openUri(AboutLinks.M3DSGN_PORTFOLIO) },
             )
             PreferenceItem(
                 title = "WSTxda",

@@ -2,8 +2,8 @@
 
 Modern, feature-rich DSU (Dynamic System Update) installer for Android. Designed for ease of use and maximum compatibility.
 
-![Preview 1](other/preview_1.jpg)
-![Preview 2](other/preview_2.jpg)
+![Preview 1](docs/images/preview_1.jpg)
+![Preview 2](docs/images/preview_2.jpg)
 
 ## Features
 - **Root/Shizuku/Dhizuku Support:** Works across various privilege levels.
@@ -17,5 +17,6 @@ Modern, feature-rich DSU (Dynamic System Update) installer for Android. Designed
 - **Gradle 9.7**
 - **Android SDK 37 (Cinnamon Bun)**
 
-## License
-Apache License 2.0
+## Credits
+- **Main Developer:** [@kerneldroid](https://github.com/kerneldroid)
+- **Original Fork Author:** [@senodroid](https://github.com/senodroid)
