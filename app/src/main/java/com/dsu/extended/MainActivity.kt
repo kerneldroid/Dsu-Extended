@@ -27,6 +27,8 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import com.rosan.dhizuku.api.Dhizuku
 import com.rosan.dhizuku.api.DhizukuRequestPermissionListener
@@ -314,7 +316,8 @@ class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListe
     }
 
     private suspend fun setupService() {
-        if (session.isRoot()) {
+        val isRoot = withContext(Dispatchers.IO) { session.isRoot() }
+        if (isRoot) {
             AppLogger.i(tag, "Binding root service")
             val privRootService = Intent(this, PrivilegedRootService::class.java)
             RootService.bind(privRootService, PrivilegedProvider.connection)

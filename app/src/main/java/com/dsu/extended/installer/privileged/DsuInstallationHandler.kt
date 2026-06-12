@@ -21,7 +21,7 @@ open class DsuInstallationHandler(
 
     private val tag = this.javaClass.simpleName
 
-    fun startInstallation() {
+    suspend fun startInstallation() {
         AppLogger.i(
             tag,
             "Starting privileged installation flow",
@@ -35,7 +35,7 @@ open class DsuInstallationHandler(
         forwardInstallationToDSU()
     }
 
-    private fun forwardInstallationToDSU() {
+    private suspend fun forwardInstallationToDSU() {
         val userdataSize = session.userSelection.userSelectedUserdata
         val fileUri = session.dsuInstallation.uri
         val length = session.dsuInstallation.fileSize
@@ -60,7 +60,7 @@ open class DsuInstallationHandler(
         }
     }
 
-    private fun unmountSdTemporary() {
+    private suspend fun unmountSdTemporary() {
         val volumes: List<VolumeInfo> =
             PrivilegedProvider.getService().volumes
         val volumesUnmount: ArrayList<String> = ArrayList()
@@ -73,6 +73,7 @@ open class DsuInstallationHandler(
             }
         }
         if (volumesUnmount.size > 0) {
+            // Use a separate scope since this must delay and remount in background
             CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
                 delay(30 * 1000)
                 for (volume in volumesUnmount) {

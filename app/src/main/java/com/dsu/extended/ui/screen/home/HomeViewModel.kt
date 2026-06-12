@@ -319,7 +319,9 @@ class HomeViewModel @Inject constructor(
             partition = "",
         )
         AppLogger.i(tag, "Forwarding install to privileged service")
-        DsuInstallationHandler(session).startInstallation()
+        viewModelScope.launch {
+            DsuInstallationHandler(session).startInstallation()
+        }
         if (session.isRoot() || OperationModeUtils.isReadLogsPermissionGranted(application)) {
             startLogging()
         } else {
@@ -379,7 +381,7 @@ class HomeViewModel @Inject constructor(
         if (session.getOperationMode() != OperationMode.ADB && logger?.isLogging?.get() == true) {
             AppLogger.w(tag, "Cancelling active installation")
             logger?.destroy()
-            PrivilegedProvider.run { forceStopPackage("com.android.dynsystem") }
+            viewModelScope.launch { PrivilegedProvider.run { forceStopPackage("com.android.dynsystem") } }
         }
 
         installationJob?.cancel()
@@ -389,28 +391,34 @@ class HomeViewModel @Inject constructor(
 
     fun onClickRebootToDynOS() {
         updateInstallationCard { it.copy(installationStep = InstallationStep.PROCESSING) }
-        PrivilegedProvider.run {
-            setEnable(true, true)
-            Shell.cmd("reboot").exec()
+        viewModelScope.launch {
+            PrivilegedProvider.run {
+                setEnable(true, true)
+                Shell.cmd("reboot").exec()
+            }
         }
     }
 
     fun onClickDiscardGsiAndStartInstallation() {
         updateInstallationCard { it.copy(installationStep = InstallationStep.PROCESSING) }
-        PrivilegedProvider.run {
-            remove()
-            forceStopPackage("com.android.dynsystem")
-            startDSUInstallation()
+        viewModelScope.launch {
+            PrivilegedProvider.run {
+                remove()
+                forceStopPackage("com.android.dynsystem")
+                startDSUInstallation()
+            }
         }
     }
 
     fun onClickDiscardGsi() {
         updateInstallationCard { it.copy(installationStep = InstallationStep.PROCESSING) }
-        PrivilegedProvider.run {
-            remove()
-            forceStopPackage("com.android.dynsystem")
-            dismissSheet()
-            resetInstallationCard()
+        viewModelScope.launch {
+            PrivilegedProvider.run {
+                remove()
+                forceStopPackage("com.android.dynsystem")
+                dismissSheet()
+                resetInstallationCard()
+            }
         }
     }
 
@@ -527,12 +535,14 @@ class HomeViewModel @Inject constructor(
             "${BuildConfig.APPLICATION_ID}.MainActivity",
         )
         intent.flags += Intent.FLAG_ACTIVITY_NEW_TASK
-        PrivilegedProvider.run {
-            grantPermission("android.permission.READ_LOGS")
-            if (Build.VERSION.SDK_INT <= 30) {
-                forceStopPackage(BuildConfig.APPLICATION_ID)
+        viewModelScope.launch {
+            PrivilegedProvider.run {
+                grantPermission("android.permission.READ_LOGS")
+                if (Build.VERSION.SDK_INT <= 30) {
+                    forceStopPackage(BuildConfig.APPLICATION_ID)
+                }
+                startActivity(intent)
             }
-            startActivity(intent)
         }
     }
 
