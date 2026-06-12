@@ -1,7 +1,6 @@
 package com.dsu.extended.util
 
 import android.os.Build
-import org.lsposed.hiddenapibypass.HiddenApiBypass
 
 class DevicePropUtils {
 
@@ -48,10 +47,29 @@ class DevicePropUtils {
             return getSystemProperty("ro.boot.dynamic_partitions") == "true"
         }
 
+        fun isGsiInstalled(): Boolean {
+            return getSystemProperty("ro.gsid.image_installed") == "1"
+        }
+
+        fun isGsiRunning(): Boolean {
+            return getSystemProperty("ro.gsid.image_running") == "1"
+        }
+
+        private val systemPropertiesClass by lazy {
+            runCatching { Class.forName("android.os.SystemProperties") }.getOrNull()
+        }
+
+        private val getMethod by lazy {
+            runCatching { systemPropertiesClass?.getMethod("get", String::class.java) }.getOrNull()
+        }
+
         private fun getSystemProperty(key: String): String {
-            val systemPropertiesClass = Class.forName("android.os.SystemProperties")
-            val value = HiddenApiBypass.invoke(systemPropertiesClass, null, "get", key)
-            return value.toString()
+            return try {
+                getMethod?.invoke(null, key)?.toString() ?: ""
+            } catch (e: Exception) {
+                AppLogger.e("DevicePropUtils", "Failed to get system property", e, "key" to key)
+                ""
+            }
         }
     }
 }

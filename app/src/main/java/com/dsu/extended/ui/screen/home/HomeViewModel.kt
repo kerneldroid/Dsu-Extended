@@ -42,6 +42,8 @@ import com.dsu.extended.util.StorageUtils
 import com.dsu.extended.util.AppLogger
 import com.dsu.extended.util.InstallationLiveUpdateNotifier
 
+import kotlin.math.roundToInt
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     val application: Application,
@@ -60,20 +62,16 @@ class HomeViewModel @Inject constructor(
     var checkReadLogsPermission = true
     var disabledStorageCheck = false
 
-    var installationJob: Job = Job()
+    private var installationJob: Job? = null
     private var logger: LogcatDiagnostic? = null
     private val liveUpdateNotifier = InstallationLiveUpdateNotifier(application.applicationContext)
 
     private val allocPercentage = DevicePropUtils.getGsidBinaryAllowedPerc()
-    val allocPercentageInt = String.format("%.0f", allocPercentage * 100).toInt()
+    val allocPercentageInt = (allocPercentage * 100).roundToInt()
 
     private val storageStats = StorageUtils.getAllocInfo(allocPercentage)
     private val hasAvailableStorage = storageStats.first
     private val maximumAllowedForAllocation = storageStats.second
-
-    //
-    // Helper methods used for controlling UI State
-    //
 
     private fun updateAdditionalCardState(additionalCard: AdditionalCardState) =
         _uiState.update { it.copy(additionalCard = additionalCard) }
@@ -102,14 +100,17 @@ class HomeViewModel @Inject constructor(
 
     fun dismissSheet() = updateSheetState(SheetDisplayState.NONE)
 
-    //
-    // Home startup and checks
-    //
-
     init {
-        // Check if a DSU is already installed
-        // Root-only because MANAGE_DYNAMIC_SYSTEM is required
-        if (session.isRoot()) {
+        val propRunning = DevicePropUtils.isGsiRunning()
+        val propInstalled = DevicePropUtils.isGsiInstalled()
+
+        if (propRunning) {
+            updateInstallationCard { it.copy(installationStep = InstallationStep.DSU_ALREADY_RUNNING_DYN_OS) }
+        } else if (propInstalled) {
+            updateInstallationCard { it.copy(installationStep = InstallationStep.DSU_ALREADY_INSTALLED) }
+        }
+
+        viewModelScope.launch {
             PrivilegedProvider.run {
                 if (isInUse) {
                     updateInstallationCard { it.copy(installationStep = InstallationStep.DSU_ALREADY_RUNNING_DYN_OS) }
@@ -194,13 +195,13 @@ class HomeViewModel @Inject constructor(
 
     fun overrideDynamicPartitionCheck() {
         checkDynamicPartitions = false
-        AppLogger.w(tag, "Dynamic partition check overridden", "checkDynamicPartitions" to checkDynamicPartitions)
+        AppLogger.w(tag, "Dynamic partition check overridden")
         initialChecks()
     }
 
     fun overrideUnavailableStorage() {
         checkUnavailableStorage = false
-        AppLogger.w(tag, "Storage availability check overridden", "checkUnavailableStorage" to checkUnavailableStorage)
+        AppLogger.w(tag, "Storage availability check overridden")
         initialChecks()
     }
 
@@ -210,10 +211,6 @@ class HomeViewModel @Inject constructor(
             initialChecks()
         }
     }
-
-    //
-    // Installation
-    //
 
     fun obtainSelectedFilename(): String = session.userSelection.selectedFileName
 
@@ -231,8 +228,9 @@ class HomeViewModel @Inject constructor(
 
     fun onConfirmInstallationSheet() {
         dismissSheet()
-        installationJob = Job()
-        viewModelScope.launch(Dispatchers.IO + installationJob) {
+        installationJob?.cancel()
+        installationJob = viewModelScope.launch(Dispatchers.IO) {
+            val currentJob = coroutineContext[Job]!!
             updateInstallationCard { it.copy(installationStep = InstallationStep.PROCESSING, installationProgress = 0f) }
             liveUpdateNotifier.showProgress(
                 step = InstallationStep.PROCESSING,
@@ -244,7 +242,7 @@ class HomeViewModel @Inject constructor(
             Preparation(
                 storageManager = storageManager,
                 session = session,
-                job = installationJob,
+                job = currentJob,
                 onStepUpdate = this@HomeViewModel::onStepUpdate,
                 onPreparationProgressUpdate = this@HomeViewModel::onPreparationProgressUpdate,
                 onCanceled = this@HomeViewModel::onClickCancelInstallationButton,
@@ -254,7 +252,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun onPreparationFinished(dsuInstallation: DSUInstallationSource) {
-        AppLogger.i(tag, "Preparation finished", "sourceType" to dsuInstallation.type, "uri" to dsuInstallation.uri)
+        AppLogger.i(tag, "Preparation finished", "sourceType" to dsuInstallation.type)
         session.dsuInstallation = dsuInstallation
         startInstallation()
     }
@@ -265,7 +263,6 @@ class HomeViewModel @Inject constructor(
             "Starting installation",
             "mode" to session.getOperationMode(),
             "useBuiltinInstaller" to session.preferences.useBuiltinInstaller,
-            "isRoot" to session.isRoot(),
         )
         updateInstallationCard {
             it.copy(
@@ -300,11 +297,12 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun startDSUInstallation() {
+        val currentJob = installationJob ?: return
         DSUInstaller(
             application = application,
             userdataSize = session.userSelection.userSelectedUserdata,
             dsuInstallation = session.dsuInstallation,
-            installationJob = installationJob,
+            installationJob = currentJob,
             onInstallationError = this::onInstallationError,
             onInstallationProgressUpdate = this::onInstallationProgressUpdate,
             onCreatePartition = this::onCreatePartition,
@@ -320,7 +318,7 @@ class HomeViewModel @Inject constructor(
             progress = 0f,
             partition = "",
         )
-        AppLogger.i(tag, "Forwarding install to privileged service", "mode" to session.getOperationMode())
+        AppLogger.i(tag, "Forwarding install to privileged service")
         DsuInstallationHandler(session).startInstallation()
         if (session.isRoot() || OperationModeUtils.isReadLogsPermissionGranted(application)) {
             startLogging()
@@ -329,8 +327,8 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    // Track and diagnose installation by reading logcat
     private fun startLogging() {
+        val currentJob = installationJob ?: return
         if (logger == null) {
             logger = LogcatDiagnostic(
                 onInstallationError = this::onInstallationError,
@@ -340,15 +338,10 @@ class HomeViewModel @Inject constructor(
                 onLogLineReceived = this::onLogLineReceived,
             )
         }
-        viewModelScope.launch(Dispatchers.IO + installationJob) {
+        viewModelScope.launch(Dispatchers.IO + currentJob) {
             val currentLogger = logger ?: return@launch
             currentLogger.shouldLogEverything = readBoolPref(AppPrefs.FULL_LOGCAT_LOGGING)
-            AppLogger.i(
-                tag,
-                "Logcat diagnostic started",
-                "fullLogcat" to currentLogger.shouldLogEverything,
-                "mode" to session.getOperationMode(),
-            )
+            AppLogger.i(tag, "Logcat diagnostic started", "fullLogcat" to currentLogger.shouldLogEverything)
             currentLogger.startLogging(generateUsefulLogInfo())
         }
     }
@@ -376,13 +369,7 @@ class HomeViewModel @Inject constructor(
                 "app-events.txt" to AppLogger.dumpBufferedLogs().ifBlank { "No in-app logs captured." },
                 "config-snapshot.txt" to configSnapshot,
             )
-        AppLogger.i(
-            tag,
-            "Saving logs archive",
-            "uri" to uriToSaveLogs,
-            "entries" to entries.keys.joinToString(","),
-            "filteredLogLength" to currentUiState.installationLogs.length,
-        )
+        AppLogger.i(tag, "Saving logs archive", "uri" to uriToSaveLogs)
         storageManager.writeZipToUri(entries, uriToSaveLogs)
     }
 
@@ -390,20 +377,15 @@ class HomeViewModel @Inject constructor(
         persistInstallationSnapshot("installation_canceled")
         resetInstallationCard()
         if (session.getOperationMode() != OperationMode.ADB && logger?.isLogging?.get() == true) {
-            AppLogger.w(tag, "Cancelling active installation", "mode" to session.getOperationMode())
+            AppLogger.w(tag, "Cancelling active installation")
             logger?.destroy()
             PrivilegedProvider.run { forceStopPackage("com.android.dynsystem") }
         }
 
-        if (installationJob.isActive) {
-            installationJob.cancel()
-        }
+        installationJob?.cancel()
+        installationJob = null
         session.dsuInstallation = DSUInstallationSource()
     }
-
-    //
-    // Installation Card actions
-    //
 
     fun onClickRebootToDynOS() {
         updateInstallationCard { it.copy(installationStep = InstallationStep.PROCESSING) }
@@ -454,23 +436,12 @@ class HomeViewModel @Inject constructor(
 
     fun showDiscardSheet() = updateSheetState(SheetDisplayState.DISCARD_DSU)
 
-    //
-    // Userdata card
-    //
-
     fun onCheckUserdataCard() =
         updateUserdataCard { it.copy(isSelected = !it.isSelected, text = "") }
 
     fun updateUserdataSize(input: String) {
         val selectedSize = FilenameUtils.getDigits(input)
         val sizeWithSuffix = FilenameUtils.appendToDigitsToString(input, "GB")
-        AppLogger.d(
-            tag,
-            "Userdata size changed",
-            "disabledStorageCheck" to disabledStorageCheck,
-            "selectedSize" to selectedSize,
-            "maximumAllowedForAllocation" to maximumAllowedForAllocation,
-        )
 
         if (!disabledStorageCheck && selectedSize.isNotEmpty() && selectedSize.toInt() > maximumAllowedForAllocation) {
             val fixedSize =
@@ -492,10 +463,6 @@ class HomeViewModel @Inject constructor(
         updateUserdataCard { it.copy(text = sizeWithSuffix) }
     }
 
-    //
-    // Image size card
-    //
-
     fun onCheckImageSizeCard() {
         if (!uiState.value.imageSizeCard.isSelected) {
             updateSheetState(SheetDisplayState.IMAGESIZE_WARNING)
@@ -509,10 +476,6 @@ class HomeViewModel @Inject constructor(
         val inputWithSuffix = FilenameUtils.appendToDigitsToString(input, "b")
         updateImageSizeCard { it.copy(text = inputWithSuffix) }
     }
-
-    //
-    // File selection
-    //
 
     fun takeUriPermission(uri: Uri) {
         application.contentResolver.takePersistableUriPermission(
@@ -531,18 +494,10 @@ class HomeViewModel @Inject constructor(
         val extension = filename.substringAfterLast(".", "")
         val supportedFiles = arrayListOf("gz", "xz", "img", "gzip")
 
-        // DSU packages (zip files), are only supported in R+
         if (Build.VERSION.SDK_INT > 29) {
             supportedFiles.add("zip")
         }
         val isFileSupported = supportedFiles.contains(extension)
-        AppLogger.i(
-            tag,
-            "File selection result",
-            "isFileSupported" to isFileSupported,
-            "extension" to extension,
-            "filename" to filename,
-        )
 
         if (!isFileSupported) {
             viewModelScope.launch {
@@ -563,10 +518,6 @@ class HomeViewModel @Inject constructor(
             )
         }
     }
-
-    //
-    // Read logs permission warning
-    //
 
     fun grantReadLogs() {
         updateAdditionalCardState(AdditionalCardState.GRANTING_READ_LOGS_PERMISSION)
@@ -594,10 +545,6 @@ class HomeViewModel @Inject constructor(
     fun showLogsWarning() {
         updateSheetState(SheetDisplayState.VIEW_LOGS)
     }
-
-    //
-    // Progress tracking
-    //
 
     private fun onRootInstallationSuccess() {
         persistInstallationSnapshot("installation_success_root")
@@ -645,7 +592,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun onInstallationError(error: InstallationStep, errorContent: String) {
-        AppLogger.e(tag, "Installation error received", null, "step" to error, "content" to errorContent)
+        AppLogger.e(tag, "Installation error received", null, "step" to error)
         persistInstallationSnapshot("installation_error_${error.name.lowercase()}")
         updateInstallationCard {
             if (error == InstallationStep.ERROR_SELINUX && !session.isRoot()) {
@@ -673,17 +620,16 @@ class HomeViewModel @Inject constructor(
                 else -> InstallationStep.INSTALLING
             }
         val safeProgress = progress.coerceIn(0f, 1f)
-        val normalizedProgress = safeProgress
         updateInstallationCard {
             it.copy(
                 installationStep = progressStep,
                 currentPartitionText = partition,
-                installationProgress = normalizedProgress,
+                installationProgress = safeProgress,
             )
         }
         liveUpdateNotifier.showProgress(
             step = progressStep,
-            progress = normalizedProgress,
+            progress = safeProgress,
             partition = partition,
         )
     }
@@ -701,6 +647,13 @@ class HomeViewModel @Inject constructor(
             progress = 0f,
             partition = partition,
         )
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        installationJob?.cancel()
+        installationJob = null
+        logger?.destroy()
     }
 
     private fun buildConfigSnapshot(): String {

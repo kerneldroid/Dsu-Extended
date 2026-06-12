@@ -346,8 +346,17 @@ class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListe
             }
         }
 
-        AppLogger.i(tag, "Waiting for Shizuku binder")
-        addShizukuListeners()
+        // Only add Shizuku listeners if we are not already in a superior mode
+        AppLogger.i(tag, "Checking for Shizuku binder")
+        if (Shizuku.pingBinder()) {
+            if (!OperationModeUtils.isShizukuPermissionGranted(this)) {
+                askShizukuPermission()
+            } else {
+                bindShizuku()
+            }
+        } else {
+            addShizukuListeners()
+        }
         activeServiceMode = session.getOperationMode()
     }
 

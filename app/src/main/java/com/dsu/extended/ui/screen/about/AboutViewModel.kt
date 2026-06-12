@@ -2,6 +2,7 @@ package com.dsu.extended.ui.screen.about
 
 import android.app.Application
 import android.content.Intent
+import android.os.Build
 import androidx.core.content.FileProvider
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences

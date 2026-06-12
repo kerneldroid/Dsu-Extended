@@ -2,8 +2,13 @@ package com.dsu.extended.ui.screen
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -22,10 +27,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -76,9 +83,9 @@ fun Navigation() {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
-    val showMainTabs = currentRoute == Destinations.Homepage || currentRoute == Destinations.Logs
+    val showMainTabs = isMainTabRoute(currentRoute)
 
-    val navigate: (String) -> Unit = androidx.compose.runtime.remember(navController) {
+    val navigate: (String) -> Unit = remember(navController) {
         { destination ->
             if (destination == Destinations.Up) {
                 navController.navigateUp()
@@ -96,27 +103,29 @@ fun Navigation() {
         }
     }
 
-    // Global back handler - disable on main tabs to avoid system gesture intercept issues
-    // For sub-screens, this prevents predictive scaling while allowing custom pop transitions
-    if (!isMainTabRoute(currentRoute)) {
+    if (currentRoute != Destinations.Homepage) {
         BackHandler {
-            navController.navigateUp()
+            if (currentRoute == Destinations.Logs) {
+                navController.navigate(Destinations.Homepage) {
+                    popUpTo(Destinations.Homepage) { inclusive = true }
+                }
+            } else {
+                navController.navigateUp()
+            }
         }
     }
 
     Scaffold(
         bottomBar = {
-            androidx.compose.animation.AnimatedVisibility(
+            AnimatedVisibility(
                 visible = showMainTabs,
-                enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.expandVertically(expandFrom = androidx.compose.ui.Alignment.Bottom),
-                exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.shrinkVertically(shrinkTowards = androidx.compose.ui.Alignment.Bottom),
+                enter = fadeIn() + expandVertically(expandFrom = Alignment.Bottom),
+                exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Bottom),
             ) {
                 MainBottomTabs(
                     currentRoute = currentRoute.orEmpty(),
                     onSelectRoute = { destination ->
-                        if (destination == currentRoute) {
-                            return@MainBottomTabs
-                        }
+                        if (destination == currentRoute) return@MainBottomTabs
                         navController.navigate(destination) {
                             launchSingleTop = true
                             restoreState = true
@@ -134,58 +143,58 @@ fun Navigation() {
             startDestination = Destinations.Homepage,
             modifier = Modifier.fillMaxSize(),
         ) {
-                composable(
-                    route = Destinations.Homepage,
-                    enterTransition = { mainTabEnterTransition() },
-                    exitTransition = { mainTabExitTransition() },
-                    popEnterTransition = { DSUAnimations.screenPopEnterAnimation },
-                    popExitTransition = { DSUAnimations.screenPopExitAnimation },
-                ) {
-                    Box(modifier = Modifier.padding(bottom = if (showMainTabs) innerPadding.calculateBottomPadding() else 0.dp)) {
-                        Home(navigate = { navigate(it) })
-                    }
+            composable(
+                route = Destinations.Homepage,
+                enterTransition = { mainTabEnterTransition() },
+                exitTransition = { mainTabExitTransition() },
+                popEnterTransition = { DSUAnimations.screenPopEnterAnimation },
+                popExitTransition = { DSUAnimations.screenPopExitAnimation },
+            ) {
+                Box(modifier = Modifier.padding(bottom = if (showMainTabs) innerPadding.calculateBottomPadding() else 0.dp)) {
+                    Home(navigate = { navigate(it) })
                 }
-                composable(
-                    route = Destinations.Logs,
-                    enterTransition = { mainTabEnterTransition() },
-                    exitTransition = { mainTabExitTransition() },
-                    popEnterTransition = { DSUAnimations.screenPopEnterAnimation },
-                    popExitTransition = { DSUAnimations.screenPopExitAnimation },
-                ) {
-                    Box(modifier = Modifier.padding(bottom = if (showMainTabs) innerPadding.calculateBottomPadding() else 0.dp)) {
-                        LogsScreen(navigate = { navigate(it) })
-                    }
-                }
-                composable(
-                    route = Destinations.Preferences,
-                    enterTransition = { DSUAnimations.screenEnterAnimation },
-                    exitTransition = { DSUAnimations.screenExitAnimation },
-                    popEnterTransition = { DSUAnimations.screenPopEnterAnimation },
-                    popExitTransition = { DSUAnimations.screenPopExitAnimation },
-                ) { Settings(navigate = { navigate(it) }) }
-                composable(
-                    route = Destinations.ADBInstallation,
-                    enterTransition = { DSUAnimations.screenEnterAnimation },
-                    exitTransition = { DSUAnimations.screenExitAnimation },
-                    popEnterTransition = { DSUAnimations.screenPopEnterAnimation },
-                    popExitTransition = { DSUAnimations.screenPopExitAnimation },
-                ) { AdbScreen(navigate = { navigate(it) }) }
-                composable(
-                    route = Destinations.About,
-                    enterTransition = { DSUAnimations.screenEnterAnimation },
-                    exitTransition = { DSUAnimations.screenExitAnimation },
-                    popEnterTransition = { DSUAnimations.screenPopEnterAnimation },
-                    popExitTransition = { DSUAnimations.screenPopExitAnimation },
-                ) { AboutScreen(navigate = { navigate(it) }) }
-                composable(
-                    route = Destinations.Libraries,
-                    enterTransition = { DSUAnimations.screenEnterAnimation },
-                    exitTransition = { DSUAnimations.screenExitAnimation },
-                    popEnterTransition = { DSUAnimations.screenPopEnterAnimation },
-                    popExitTransition = { DSUAnimations.screenPopExitAnimation },
-                ) { LibrariesScreen(navigate = { navigate(it) }) }
             }
+            composable(
+                route = Destinations.Logs,
+                enterTransition = { mainTabEnterTransition() },
+                exitTransition = { mainTabExitTransition() },
+                popEnterTransition = { DSUAnimations.screenPopEnterAnimation },
+                popExitTransition = { DSUAnimations.screenPopExitAnimation },
+            ) {
+                Box(modifier = Modifier.padding(bottom = if (showMainTabs) innerPadding.calculateBottomPadding() else 0.dp)) {
+                    LogsScreen(navigate = { navigate(it) })
+                }
+            }
+            composable(
+                route = Destinations.Preferences,
+                enterTransition = { DSUAnimations.screenEnterAnimation },
+                exitTransition = { DSUAnimations.screenExitAnimation },
+                popEnterTransition = { DSUAnimations.screenPopEnterAnimation },
+                popExitTransition = { DSUAnimations.screenPopExitAnimation },
+            ) { Settings(navigate = { navigate(it) }) }
+            composable(
+                route = Destinations.ADBInstallation,
+                enterTransition = { DSUAnimations.screenEnterAnimation },
+                exitTransition = { DSUAnimations.screenExitAnimation },
+                popEnterTransition = { DSUAnimations.screenPopEnterAnimation },
+                popExitTransition = { DSUAnimations.screenPopExitAnimation },
+            ) { AdbScreen(navigate = { navigate(it) }) }
+            composable(
+                route = Destinations.About,
+                enterTransition = { DSUAnimations.screenEnterAnimation },
+                exitTransition = { DSUAnimations.screenExitAnimation },
+                popEnterTransition = { DSUAnimations.screenPopEnterAnimation },
+                popExitTransition = { DSUAnimations.screenPopExitAnimation },
+            ) { AboutScreen(navigate = { navigate(it) }) }
+            composable(
+                route = Destinations.Libraries,
+                enterTransition = { DSUAnimations.screenEnterAnimation },
+                exitTransition = { DSUAnimations.screenExitAnimation },
+                popEnterTransition = { DSUAnimations.screenPopEnterAnimation },
+                popExitTransition = { DSUAnimations.screenPopExitAnimation },
+            ) { LibrariesScreen(navigate = { navigate(it) }) }
         }
+    }
 }
 
 private data class MainTabItem(
