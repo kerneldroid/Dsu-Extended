@@ -1,0 +1,37 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Project pins kotlin { jvmToolchain(26) }, so the daemon JVM must be JDK 26.
+      - name: Set up JDK 26
+        uses: actions/setup-java@v5
+        with:
+          java-version: '26'
+          distribution: 'temurin'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew assembleMiniDebug
+
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: outputs-apk-minidebug
+          path: app/build/outputs/apk/miniDebug
