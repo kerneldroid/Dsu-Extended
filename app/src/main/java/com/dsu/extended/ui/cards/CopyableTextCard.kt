@@ -1,18 +1,20 @@
 package com.dsu.extended.ui.cards
 
+import android.content.ClipData
 import android.widget.Toast
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ClipboardManager
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import com.dsu.extended.R
 import com.dsu.extended.ui.components.SimpleCard
 import com.dsu.extended.ui.components.buttons.PrimaryButton
+import kotlinx.coroutines.launch
 
 @Composable
 fun CopyableTextCard(
@@ -20,7 +22,8 @@ fun CopyableTextCard(
     showToast: Boolean = true,
 ) {
     val context = LocalContext.current
-    val clipboardManager: ClipboardManager = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
+    val coroutineScope = rememberCoroutineScope()
     val copiedText = stringResource(id = R.string.copied)
 
     SimpleCard(
@@ -31,7 +34,9 @@ fun CopyableTextCard(
                 PrimaryButton(
                     text = stringResource(id = R.string.copy_text),
                     onClick = {
-                        clipboardManager.setText(AnnotatedString(text))
+                        coroutineScope.launch {
+                            clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("text", text)))
+                        }
                         if (showToast) {
                             Toast.makeText(context, copiedText, Toast.LENGTH_SHORT).show()
                         }

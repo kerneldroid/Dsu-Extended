@@ -2,6 +2,7 @@ package com.dsu.extended.ui.theme
 
 import android.app.Activity
 import android.app.WallpaperManager
+import android.view.Window
 import android.os.Build
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
@@ -292,21 +293,23 @@ fun DsuExtendedTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            val statusBarColor =
-                if (themeMode == ThemeMode.OLED) {
-                    Color(0xFF000000)
-                } else {
-                    Color.Transparent
-                }
-            window.statusBarColor = statusBarColor.toArgb()
-            window.navigationBarColor =
-                if (themeMode == ThemeMode.OLED) {
-                    Color(0xFF000000).toArgb()
-                } else if (useDarkTheme) {
-                    Color(0x70000000).toArgb()
-                } else {
-                    Color(0x70FFFFFF).toArgb()
-                }
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                val statusBarArgb =
+                    if (themeMode == ThemeMode.OLED) {
+                        Color(0xFF000000)
+                    } else {
+                        Color.Transparent
+                    }
+                val navigationBarArgb =
+                    if (themeMode == ThemeMode.OLED) {
+                        Color(0xFF000000).toArgb()
+                    } else if (useDarkTheme) {
+                        Color(0x70000000).toArgb()
+                    } else {
+                        Color(0x70FFFFFF).toArgb()
+                    }
+                applyLegacySystemBarColors(window, statusBarArgb.toArgb(), navigationBarArgb)
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 window.isNavigationBarContrastEnforced = false
             }
@@ -357,3 +360,11 @@ object SemanticColors {
     @Composable
     fun glassOverlay(): Color = if (isSystemInDarkTheme()) GlassDark else GlassLight
 }
+
+// Colored system bars still work below API 35; edge-to-edge takes over afterwards.
+@Suppress("DEPRECATION")
+private fun applyLegacySystemBarColors(window: Window, statusBarArgb: Int, navigationBarArgb: Int) {
+    window.statusBarColor = statusBarArgb
+    window.navigationBarColor = navigationBarArgb
+}
+

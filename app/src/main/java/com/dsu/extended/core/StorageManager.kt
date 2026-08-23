@@ -16,7 +16,6 @@ import java.util.zip.ZipOutputStream
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.apache.commons.compress.utils.IOUtils
 import com.dsu.extended.preferences.AppPrefs
 import com.dsu.extended.util.DataStoreUtils
 import com.dsu.extended.util.FilenameUtils
@@ -102,7 +101,9 @@ class StorageManager(
 
     private fun copyFileToSafFolder(inputFile: Uri): Uri {
         val clone: DocumentFile = createDocumentFile(getFilenameFromUri(inputFile))
-        IOUtils.copy(openInputStream(inputFile), openOutputStream(clone.uri))
+        openInputStream(inputFile).use { input ->
+            openOutputStream(clone.uri).use { output -> input.copyTo(output) }
+        }
         return clone.uri
     }
 

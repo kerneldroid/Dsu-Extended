@@ -238,11 +238,11 @@ class DSUInstaller(
 
     private fun installStreamingZipUpdate(inputStream: InputStream): Boolean {
         val zis = ZipInputStream(inputStream)
-        var entry: ZipEntry?
-        while (zis.nextEntry.also { entry = it } != null) {
-            val fileName = entry!!.name
+        while (true) {
+            val entry = zis.nextEntry ?: break
+            val fileName = entry.name
             if (shouldInstallEntry(fileName)) {
-                installImageFromAnEntry(entry!!, zis)
+                installImageFromAnEntry(entry, zis)
             } else {
                 AppLogger.d(tag, "Entry skipped", "fileName" to fileName)
             }

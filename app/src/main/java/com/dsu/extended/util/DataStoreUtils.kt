@@ -29,7 +29,7 @@ class DataStoreUtils {
         ): String {
             return dataStore.data.map {
                 it[stringPreferencesKey(key)] ?: default
-            }.first().toString()
+            }.first()
         }
 
         suspend fun readStringPref(

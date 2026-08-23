@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import androidx.datastore.core.DataStore
@@ -182,8 +183,19 @@ class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListe
         )
 
     private val SHIZUKU_REQUEST_CODE = 1000
-    private val NOTIFICATIONS_REQUEST_CODE = 1002
     private val REQUEST_PERMISSION_RESULT_LISTENER = this::onRequestPermissionResult
+
+    // Runtime permission requests (notifications, Shizuku pre-v11 fallback).
+    private val permissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
+            if (grants[ShizukuProvider.PERMISSION] == true) {
+                bindShizuku()
+            }
+            if (checkAllAwaitingShizukuPermission) {
+                checkAllAwaitingShizukuPermission = false
+                finishCheckAllIfReady()
+            }
+        }
 
     private fun addShizukuListeners() {
         Shizuku.addBinderReceivedListenerSticky(BINDER_RECEIVED_LISTENER)
@@ -205,7 +217,7 @@ class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListe
 
     private fun askShizukuPermission() {
         if (Shizuku.isPreV11() || Shizuku.getVersion() < 11) {
-            requestPermissions(arrayOf(ShizukuProvider.PERMISSION), SHIZUKU_REQUEST_CODE)
+            permissionLauncher.launch(arrayOf(ShizukuProvider.PERMISSION))
         } else {
             Shizuku.requestPermission(SHIZUKU_REQUEST_CODE)
         }
@@ -223,21 +235,6 @@ class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListe
         }
         Shizuku.removeRequestPermissionResultListener(REQUEST_PERMISSION_RESULT_LISTENER)
         if (requestCode == SHIZUKU_REQUEST_CODE && checkAllAwaitingShizukuPermission) {
-            checkAllAwaitingShizukuPermission = false
-            finishCheckAllIfReady()
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode != SHIZUKU_REQUEST_CODE) {
-            return
-        }
-        val granted = grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED
-        if (granted) {
-            bindShizuku()
-        }
-        if (checkAllAwaitingShizukuPermission) {
             checkAllAwaitingShizukuPermission = false
             finishCheckAllIfReady()
         }
@@ -307,9 +304,9 @@ class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListe
 
     companion object {
         init {
+            Shell.enableLegacyStderrRedirection = true
             Shell.setDefaultBuilder(
                 Shell.Builder.create()
-                    .setFlags(Shell.FLAG_REDIRECT_STDERR)
                     .setTimeout(10),
             )
         }
@@ -442,7 +439,7 @@ class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListe
         if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
             return
         }
-        requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), NOTIFICATIONS_REQUEST_CODE)
+        permissionLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
