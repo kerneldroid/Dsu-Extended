@@ -5,6 +5,7 @@ on:
     branches: [ "main", "master" ]
   pull_request:
     branches: [ "main", "master" ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -27,11 +28,34 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build with Gradle
-        run: ./gradlew assembleMiniDebug
+      - name: Update bundled Google Sans fonts
+        run: ./scripts/update-fonts.sh
+
+      - name: Restore release keystore
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          mkdir -p .sign
+          echo "$KEYSTORE_BASE64" | base64 -d > .sign/release.jks
+
+      - name: Build release APK
+        env:
+          SIGNING_KEYSTORE_FILE: .sign/release.jks
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          # Silence JDK 24+ restricted-method warnings from Gradle's native platform.
+          JAVA_TOOL_OPTIONS: "--enable-native-access=ALL-UNNAMED"
+        run: |
+          if [ ! -f .sign/release.jks ]; then
+            echo "::warning::KEYSTORE_BASE64 secret is not set — building an UNSIGNED release APK."
+            unset SIGNING_KEYSTORE_FILE SIGNING_STORE_PASSWORD SIGNING_KEY_ALIAS SIGNING_KEY_PASSWORD
+          fi
+          ./gradlew assembleRelease
 
       - name: Archive artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: outputs-apk-minidebug
-          path: app/build/outputs/apk/miniDebug
+          name: outputs-apk-release
+          path: app/build/outputs/apk/release
