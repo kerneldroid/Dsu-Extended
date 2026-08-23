@@ -1,0 +1,55 @@
+name: Feature request
+description: Propose a new capability or improvement for Dsu Extended.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / use case
+      description: What are you trying to do, and what currently blocks it? Describe the real-world scenario (device, mode, GSI image).
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What should the app do instead? Be specific about behavior, not implementation.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Related area
+      options:
+        - DSU installation flow
+        - Operation modes (Root / Shizuku / Dhizuku / ADB / System)
+        - UI / UX
+        - Diagnostics & logs
+        - Updater
+        - Build system / CI
+        - Other
+
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Constraints acknowledged
+      description: Many requests hit hard platform walls — check what applies.
+      options:
+        - label: I understand DSU requires an unlocked bootloader and vendor support for dynamic partitions
+        - label: Features requiring privileges beyond ADB shell level need Root/Shizuku/Dhizuku and cannot be done in unrooted mode
+
+  - type: checkboxes
+    id: validation
+    attributes:
+      label: Pre-flight checklist
+      options:
+        - label: I searched existing feature requests for a duplicate
+          required: true
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      options:
+        - label: I am willing to help test a prototype of this feature

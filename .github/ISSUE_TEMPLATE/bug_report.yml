@@ -1,0 +1,140 @@
+name: Bug report
+description: Report a crash, wrong behavior, or failed DSU installation in Dsu Extended.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill this out. Incomplete reports without logs are hard to debug — the **Logs** tab in the app can export everything needed.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - DSU installation
+        - DSU detection / status (running or installed GSI)
+        - Operation mode detection (Root / Shizuku / Dhizuku / ADB / System)
+        - Crash on app start
+        - UI / animations
+        - Updater
+        - Logs & diagnostics
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened, what did you expect to happen? Steps to reproduce from a clean app start.
+      placeholder: |
+        1. Open the app with ...
+        2. Select ...
+        3. Press Install → ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: operation-mode
+    attributes:
+      label: Operation mode shown in the app
+      description: Visible on the Home screen / Settings of Dsu Extended.
+      options:
+        - Root
+        - Shizuku
+        - Dhizuku
+        - ADB (unrooted)
+        - Root/System
+        - System
+        - App crashes before mode is shown
+    validations:
+      required: true
+
+  - type: dropdown
+    id: root-solution
+    attributes:
+      label: Root solution (if rooted)
+      options:
+        - Not rooted
+        - Magisk
+        - KernelSU
+        - KernelSU Next
+        - APatch
+        - Other
+
+  - type: dropdown
+    id: shizuku-source
+    attributes:
+      label: Shizuku started via (if used)
+      options:
+        - Not using Shizuku
+        - Wireless debugging
+        - ADB over USB
+        - Root
+        - Shizuku is installed but not running
+
+  - type: input
+    id: device
+    attributes:
+      label: Device model
+      placeholder: e.g. OnePlus 12 (CPH2581)
+    validations:
+      required: true
+
+  - type: input
+    id: android-version
+    attributes:
+      label: Android version / ROM
+      placeholder: e.g. Android 16 / OxygenOS 16
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: App version and build
+      description: From About screen or `adb shell dumpsys package com.dsu.extended | grep version`.
+      placeholder: e.g. 1.2.0 (versionCode 16), built from source at commit abc1234
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-source
+    attributes:
+      label: Where did you get the app?
+      options:
+        - GitHub Releases
+        - Built from source
+        - Third-party mirror / F-Droid client
+        - Other
+
+  - type: checkboxes
+    id: environment
+    attributes:
+      label: Environment
+      options:
+        - label: Bootloader is unlocked
+        - label: A GSI/DSU image is currently running or installed on this device
+        - label: Storage access (SAF folder) was granted in the app
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        Export from the app's Logs tab, or run `adb logcat --pid=$(pidof com.dsu.extended) *:V` while reproducing.
+        For installation failures include output of the failing step. Use code fences.
+      render: shell
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: validation
+    attributes:
+      label: Pre-flight checklist
+      options:
+        - label: I searched existing issues (open and closed) for a duplicate
+          required: true
+        - label: This happens on the latest release or latest master build
+          required: true

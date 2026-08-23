@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: DSU documentation
+    url: https://source.android.com/docs/core/ota/dynamic-system-updates
+    about: Official Android docs on Dynamic System Updates — read before reporting installation issues.
