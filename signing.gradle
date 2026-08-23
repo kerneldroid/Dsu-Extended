@@ -29,7 +29,9 @@ android {
                     storeFile rootProject.file(envStoreFile)
                     storePassword envStorePass
                     keyAlias envKeyAlias
-                    keyPassword envKeyPass
+                    // PKCS12 keystores encrypt keys with the store password; a distinct
+                    // key password is only honored by legacy JKS files.
+                    keyPassword envKeyPass ?: envStorePass
                 }
             }
         }
