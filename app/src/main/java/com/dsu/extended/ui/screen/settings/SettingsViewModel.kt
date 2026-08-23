@@ -8,11 +8,13 @@ import androidx.lifecycle.viewModelScope
 import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.dsu.extended.core.BaseViewModel
 import com.dsu.extended.model.Session
 import com.dsu.extended.preferences.AppPrefs
@@ -25,6 +27,11 @@ import com.dsu.extended.util.OperationModeUtils
 import com.dsu.extended.util.PreferredPrivilegedMode
 import com.dsu.extended.util.AppLogger
 import com.dsu.extended.util.DataStoreUtils
+
+private suspend fun probeHasRoot(): Boolean =
+    withContext(Dispatchers.IO) {
+        runCatching { Shell.getShell().isRoot }.getOrDefault(false)
+    }
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -52,7 +59,7 @@ class SettingsViewModel @Inject constructor(
             val themeMode = ThemeMode.fromPreference(readStringPref(AppPrefs.THEME_MODE))
             val colorStyle = ColorPaletteStyle.fromPreference(readStringPref(AppPrefs.MATERIAL_COLOR_STYLE))
             val dynamicColor = DataStoreUtils.readBoolPref(dataStore, AppPrefs.USE_DYNAMIC_COLOR, false)
-            val hasRoot = Shell.getShell().isRoot
+            val hasRoot = probeHasRoot()
             val hasShizuku = OperationModeUtils.isShizukuPermissionGranted(application)
             val hasDhizuku = OperationModeUtils.isDhizukuPermissionGranted(application)
             val hasSystemDsu = OperationModeUtils.isDsuPermissionGranted(application)
@@ -120,7 +127,7 @@ class SettingsViewModel @Inject constructor(
 
     fun refreshPrivilegedChecks() {
         viewModelScope.launch {
-            val hasRoot = Shell.getShell().isRoot
+            val hasRoot = probeHasRoot()
             val hasShizuku = OperationModeUtils.isShizukuPermissionGranted(application)
             val hasDhizuku = OperationModeUtils.isDhizukuPermissionGranted(application)
             val hasSystemDsu = OperationModeUtils.isDsuPermissionGranted(application)

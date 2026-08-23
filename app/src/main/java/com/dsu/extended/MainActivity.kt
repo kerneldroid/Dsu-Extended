@@ -196,11 +196,11 @@ class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListe
     }
 
     private val BINDER_RECEIVED_LISTENER = Shizuku.OnBinderReceivedListener {
-        if (!OperationModeUtils.isShizukuPermissionGranted(this)) {
-            askShizukuPermission()
-            return@OnBinderReceivedListener
+        if (OperationModeUtils.isShizukuPermissionGranted(this)) {
+            bindShizuku()
+        } else {
+            AppLogger.d(tag, "Shizuku binder received without permission; waiting for explicit grant")
         }
-        bindShizuku()
     }
 
     private fun askShizukuPermission() {
@@ -351,12 +351,8 @@ class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListe
 
         // Only add Shizuku listeners if we are not already in a superior mode
         AppLogger.i(tag, "Checking for Shizuku binder")
-        if (Shizuku.pingBinder()) {
-            if (!OperationModeUtils.isShizukuPermissionGranted(this)) {
-                askShizukuPermission()
-            } else {
-                bindShizuku()
-            }
+        if (OperationModeUtils.isShizukuPermissionGranted(this)) {
+            bindShizuku()
         } else {
             addShizukuListeners()
         }

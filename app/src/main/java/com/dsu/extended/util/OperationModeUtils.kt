@@ -79,13 +79,13 @@ class OperationModeUtils {
             preferredPrivilegedMode: PreferredPrivilegedMode = PreferredPrivilegedMode.ALL,
         ): OperationMode {
             if (isDsuPermissionGranted(context)) {
-                if (Shell.getShell().isRoot) {
+                if (probeIsRootShell()) {
                     return OperationMode.SYSTEM_AND_ROOT
                 }
                 return OperationMode.SYSTEM
             }
 
-            val hasRoot = Shell.getShell().isRoot
+            val hasRoot = probeIsRootShell()
             val hasDhizuku = checkDhizuku && isDhizukuPermissionGranted(context)
             val hasShizuku = checkShizuku && isShizukuPermissionGranted(context)
 
@@ -151,12 +151,18 @@ class OperationModeUtils {
             return isPermissionGranted(context, readLogsPermission)
         }
 
+        private fun probeIsRootShell(): Boolean =
+            runCatching { Shell.getShell().isRoot }.getOrDefault(false)
+
         fun isShizukuPermissionGranted(context: Context): Boolean {
-            return if (Shizuku.isPreV11() || Shizuku.getVersion() < 11) {
-                isPermissionGranted(context, ShizukuProvider.PERMISSION)
-            } else {
-                Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
-            }
+            if (!Shizuku.pingBinder()) return false
+            return runCatching {
+                if (Shizuku.isPreV11() || Shizuku.getVersion() < 11) {
+                    isPermissionGranted(context, ShizukuProvider.PERMISSION)
+                } else {
+                    Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
+                }
+            }.getOrDefault(false)
         }
 
         fun isDhizukuPermissionGranted(context: Context): Boolean {
