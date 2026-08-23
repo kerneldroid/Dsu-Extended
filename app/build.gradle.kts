@@ -1,10 +1,5 @@
 import com.android.build.api.dsl.ApplicationExtension
-import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
-fun getReleaseSigningConfig(): File {
-    return File(".sign/dsu_extended.prop")
-}
 
 plugins {
     id("com.android.application")
@@ -15,10 +10,10 @@ plugins {
     id("org.jmailen.kotlinter")
 }
 
+apply(from = "$rootDir/signing.gradle")
+
 extensions.configure<ApplicationExtension>("android") {
-    val versionCode: Int by rootProject.extra
-    val versionName: String by rootProject.extra
-    val packageName: String by rootProject.extra
+    val packageName = rootProject.extra["packageName"] as String
     val enableAbiSplits =
         (project.findProperty("ENABLE_ABI_SPLITS") as? String)
             ?.equals("true", ignoreCase = true)
@@ -48,24 +43,11 @@ extensions.configure<ApplicationExtension>("android") {
     }
 
     signingConfigs {
-        val releaseSigningConfig = getReleaseSigningConfig()
-        if (releaseSigningConfig.exists()) {
-            create("release") {
-                val props = Properties()
-                props.load(releaseSigningConfig.inputStream())
-                storeFile = File(props.getProperty("keystore"))
-                storePassword = props.getProperty("keystore_pw")
-                keyAlias = props.getProperty("alias")
-                keyPassword = props.getProperty("alias_pw")
-            }
-        }
+        // Configured in signing.gradle (local props file or CI environment variables).
     }
 
     buildTypes {
         getByName("release") {
-            if (getReleaseSigningConfig().exists()) {
-                signingConfig = signingConfigs.getByName("release")
-            }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -142,8 +124,10 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.9.0")
     implementation("androidx.preference:preference-ktx:1.2.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.11.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.11.0")
     implementation("com.google.dagger:hilt-android:2.60.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.4.0")
+    implementation("androidx.hilt:hilt-lifecycle-viewmodel-compose:1.4.0")
     ksp("com.google.dagger:hilt-android-compiler:2.60.1")
     implementation("com.google.android.material:material:1.14.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")

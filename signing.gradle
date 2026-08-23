@@ -1,0 +1,45 @@
+// Release signing resolution, applied from app/build.gradle.kts.
+// Sources, in priority order:
+//   1. .sign/dsu_extended.prop  (local developer config; keys: keystore, keystore_pw, alias, alias_pw)
+//   2. Environment variables    (CI): SIGNING_KEYSTORE_FILE, SIGNING_STORE_PASSWORD,
+//                                  SIGNING_KEY_ALIAS, SIGNING_KEY_PASSWORD
+// With neither source present, release builds stay unsigned instead of failing.
+
+def propFile = rootProject.file(".sign/dsu_extended.prop")
+def envStoreFile = System.getenv("SIGNING_KEYSTORE_FILE")
+def envStorePass = System.getenv("SIGNING_STORE_PASSWORD")
+def envKeyAlias = System.getenv("SIGNING_KEY_ALIAS")
+def envKeyPass = System.getenv("SIGNING_KEY_PASSWORD")
+
+def hasPropSigning = propFile.exists()
+def hasEnvSigning = envStoreFile != null && envStorePass != null
+
+android {
+    signingConfigs {
+        if (hasPropSigning || hasEnvSigning) {
+            release {
+                if (hasPropSigning) {
+                    def props = new Properties()
+                    propFile.withInputStream { props.load(it) }
+                    storeFile file(props.getProperty("keystore"))
+                    storePassword props.getProperty("keystore_pw")
+                    keyAlias props.getProperty("alias")
+                    keyPassword props.getProperty("alias_pw")
+                } else {
+                    storeFile rootProject.file(envStoreFile)
+                    storePassword envStorePass
+                    keyAlias envKeyAlias
+                    keyPassword envKeyPass
+                }
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            if (hasPropSigning || hasEnvSigning) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+}
