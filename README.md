@@ -21,3 +21,4 @@ Modern, feature-rich DSU (Dynamic System Update) installer for Android. Designed
 ## Credits
 - **Main Developer:** [@kerneldroid](https://github.com/kerneldroid)
 - **Original Fork Author:** [@senodroid](https://github.com/senodroid)
+- **Partition Manager inspiration:** [DSU-Sideloader-Plus](https://github.com/yangFenTuoZi/DSU-Sideloader-Plus) by [@yangFenTuoZi](https://github.com/yangFenTuoZi)

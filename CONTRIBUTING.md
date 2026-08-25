@@ -1,17 +1,25 @@
 # Contributing to DSU Extended
 
-Thank you for your interest in contributing!
+Issues and pull requests are open. Quality bar is enforced: low-effort reports and AI-generated filler are closed without discussion.
 
-Please note that **Issues** and **Pull Requests** are currently **closed** and will not be monitored. I am currently focused on other projects and cannot provide active maintenance for this repository at this time.
+## Reporting a bug
 
-## Where to go?
+- Use the **bug report** issue form and fill every required field.
+- Attach logs: the app's Logs tab export or `adb logcat` output captured while reproducing.
+- State your exact setup: device, Android version/ROM, operation mode (Root/Shizuku/Dhizuku/ADB/System), root solution.
+- One problem per issue. No "+1" or "same here" comments — react with 👍 instead.
 
-If you have questions, suggestions, or want to discuss the project with the community, please use the **GitHub Discussions** tab. I have enabled it specifically for this purpose.
+## Requesting a feature
 
-## Summary
+- Use the **feature request** form. Describe the real-world scenario, not just the idea.
+- Read the DSU constraints listed in the form first; requests that hit hard platform walls will be closed.
 
-- **Issues:** Closed.
-- **Pull Requests:** Closed.
-- **Community & Support:** [GitHub Discussions](https://github.com/kerneldroid/Dsu-Extended/discussions).
+## Pull requests
 
-Thank you for understanding!
+- Keep the diff scoped to one change. No drive-by refactors, reformatting, or unrelated fixes.
+- Follow existing code style; comments are allowed only where they explain non-obvious logic.
+- User-facing strings go into both `values/strings.xml` and `values-ru/strings.xml`.
+- Verify your build before pushing: `./gradlew assembleDebug`.
+- Fill the PR template completely, including which privilege modes you tested.
+
+By participating you agree to follow the project's code of conduct: be precise, be technical, be respectful.
