@@ -9,6 +9,10 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
@@ -18,6 +22,9 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.core.view.WindowCompat
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import com.dsu.extended.ui.components.LocalContentMaxWidth
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -56,6 +63,7 @@ import com.dsu.extended.util.OperationModeUtils
 import com.dsu.extended.util.PreferredPrivilegedMode
 
 @AndroidEntryPoint
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListener {
 
     @Inject
@@ -450,6 +458,12 @@ class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListe
         AppLogger.i(tag, "MainActivity created", "savedState" to (savedInstanceState != null))
 
         setContent {
+            val windowSizeClass = calculateWindowSizeClass(this)
+            val contentMaxWidth = when (windowSizeClass.widthSizeClass) {
+                WindowWidthSizeClass.Medium -> 640.dp
+                WindowWidthSizeClass.Expanded -> 840.dp
+                else -> Dp.Unspecified
+            }
             val preferences by dataStore.data.collectAsState(initial = emptyPreferences())
             val themeModePreference = preferences[stringPreferencesKey(AppPrefs.THEME_MODE)] ?: ThemeMode.SYSTEM.value
             val themeMode = ThemeMode.fromPreference(themeModePreference)
@@ -467,7 +481,9 @@ class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListe
                 colorPaletteStyle = colorPaletteStyle,
                 appFontPreset = appFontPreset,
             ) {
-                Navigation()
+                CompositionLocalProvider(LocalContentMaxWidth provides contentMaxWidth) {
+                    Navigation()
+                }
             }
         }
 

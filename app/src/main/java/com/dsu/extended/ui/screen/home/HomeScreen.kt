@@ -2,11 +2,18 @@ package com.dsu.extended.ui.screen.home
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -20,6 +27,7 @@ import kotlin.system.exitProcess
 import kotlinx.coroutines.flow.collectLatest
 import com.dsu.extended.MainActivity
 import com.dsu.extended.R
+import com.dsu.extended.ui.components.AppScaffold
 import com.dsu.extended.ui.cards.DsuInfoCard
 import com.dsu.extended.ui.cards.ImageSizeCard
 import com.dsu.extended.ui.cards.UserdataCard
@@ -30,8 +38,6 @@ import com.dsu.extended.ui.cards.warnings.SetupStorage
 import com.dsu.extended.ui.cards.warnings.StorageWarningCard
 import com.dsu.extended.ui.cards.warnings.UnlockedBootloaderCard
 import com.dsu.extended.ui.cards.warnings.UnsupportedCard
-import com.dsu.extended.ui.components.ApplicationScreen
-import com.dsu.extended.ui.components.TopBar
 import com.dsu.extended.ui.screen.Destinations
 import com.dsu.extended.ui.sdialogs.CancelSheet
 import com.dsu.extended.ui.sdialogs.ConfirmInstallationSheet
@@ -40,6 +46,10 @@ import com.dsu.extended.ui.sdialogs.ImageSizeWarningSheet
 import com.dsu.extended.ui.sdialogs.ViewLogsBottomSheet
 import com.dsu.extended.ui.util.KeepScreenOn
 import com.dsu.extended.util.collectAsStateWithLifecycle
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.Icon
 
 object HomeLinks {
     const val DSU_LEARN_MORE = "https://developer.android.com/topic/dsu"
@@ -67,19 +77,28 @@ fun Home(
         }
     }
 
-    ApplicationScreen(
-        modifier = Modifier.padding(horizontal = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        topBar = {
-            TopBar(
-                barTitle = stringResource(id = R.string.app_name),
-                compactTitle = true,
-                icon = Icons.Rounded.Settings,
-                scrollBehavior = it,
-                onClickIcon = { navigate(Destinations.Preferences) },
-            )
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+
+    AppScaffold(
+        title = {
+            Text(text = stringResource(id = R.string.app_name), style = MaterialTheme.typography.titleLarge)
         },
-        content = {
+        actions = {
+            IconButton(onClick = { navigate(Destinations.Preferences) }) {
+                Icon(imageVector = Icons.Rounded.Settings, contentDescription = null)
+            }
+        },
+        scrollBehavior = scrollBehavior,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
+                .padding(horizontal = 12.dp)
+                .padding(bottom = 110.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             Box(
                 modifier = Modifier
                     .padding(top = if (uiState.additionalCard == AdditionalCardState.NONE) 0.dp else 10.dp)
@@ -157,8 +176,8 @@ fun Home(
                     onClickLearnMore = { uriHandler.openUri(HomeLinks.DSU_LEARN_MORE) },
                 )
             }
-        },
-    )
+        }
+    }
 
     when (uiState.sheetDisplay) {
         SheetDisplayState.CONFIRM_INSTALLATION ->

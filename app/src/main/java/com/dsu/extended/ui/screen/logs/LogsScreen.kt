@@ -23,6 +23,10 @@ import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -49,16 +53,18 @@ import java.util.Date
 import java.util.Locale
 import com.dsu.extended.BuildConfig
 import com.dsu.extended.R
+import com.dsu.extended.ui.components.AppScaffold
 import com.dsu.extended.ui.cards.LogcatCard
-import com.dsu.extended.ui.components.ApplicationScreen
 import com.dsu.extended.ui.components.CardBox
-import com.dsu.extended.ui.components.TopBar
 import com.dsu.extended.ui.components.buttons.ActionButton
 import com.dsu.extended.ui.components.buttons.PrimaryButton
 import com.dsu.extended.ui.screen.Destinations
 import com.dsu.extended.util.StoredLogEntry
 import com.dsu.extended.util.StoredLogType
 import com.dsu.extended.util.collectAsStateWithLifecycle
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.verticalScroll
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -75,29 +81,37 @@ fun LogsScreen(
         logsViewModel.consumeStatusMessage()
     }
 
-    ApplicationScreen(
-        modifier = Modifier.padding(
-            start = 12.dp,
-            end = 12.dp,
-            top = 10.dp,
-        ),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        topBar = {
-            TopBar(
-                barTitle = stringResource(id = R.string.logs_title),
-                compactTitle = true,
-                icon = Icons.Rounded.Settings,
-                scrollBehavior = it,
-                onClickBackButton = { navigate(Destinations.Up) },
-                onClickIcon = { navigate(Destinations.Preferences) },
-            )
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+
+    AppScaffold(
+        title = { Text(text = stringResource(id = R.string.logs_title), style = MaterialTheme.typography.titleLarge) },
+        navigationIcon = {
+            IconButton(onClick = { navigate(Destinations.Up) }) {
+                Icon(imageVector = Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = null)
+            }
         },
+        actions = {
+            IconButton(onClick = { navigate(Destinations.Preferences) }) {
+                Icon(imageVector = Icons.Rounded.Settings, contentDescription = null)
+            }
+        },
+        scrollBehavior = scrollBehavior,
     ) {
-        ExpressiveLogsContent(
-            uiState = uiState,
-            logsViewModel = logsViewModel,
-            onShare = { shareLogFile(context, it) },
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
+                .padding(start = 12.dp, end = 12.dp, top = 10.dp)
+                .padding(bottom = 110.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            ExpressiveLogsContent(
+                uiState = uiState,
+                logsViewModel = logsViewModel,
+                onShare = { shareLogFile(context, it) },
+            )
+        }
     }
 
     if (uiState.showLogViewer) {
