@@ -2,6 +2,7 @@ package com.dsu.extended;
 
 import android.gsi.GsiProgress;
 import android.os.storage.VolumeInfo;
+import com.dsu.extended.IPartitionTransferListener;
 
 interface IPrivilegedService {
     void exit() = 1;
@@ -36,4 +37,16 @@ interface IPrivilegedService {
     boolean setAshmem(in ParcelFileDescriptor fd, long size) = 4012;
     boolean submitFromAshmem(long bytes) = 4013;
     long suggestScratchSize() = 4014;
+
+    // DSU backing image manager
+    List<String> getImagePrefixes() = 4015;
+    List<String> getDsuImages(String prefix) = 4016;
+    int deleteDsuImage(String prefix, String imageName) = 4017;
+    boolean startAddDsuImage(String prefix, String imageName, in ParcelFileDescriptor imageFd,
+            long imageSize, boolean readOnly, @nullable IPartitionTransferListener listener) = 4018;
+    boolean startReplaceDsuImage(String prefix, String imageName, in ParcelFileDescriptor imageFd,
+            long imageSize, boolean readOnly, @nullable IPartitionTransferListener listener) = 4019;
+    boolean startExportDsuImage(String prefix, String imageName, in ParcelFileDescriptor imageFd,
+            @nullable IPartitionTransferListener listener) = 4020;
+    void cancelDsuImageTransfer() = 4021;
 }

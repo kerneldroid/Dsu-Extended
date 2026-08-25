@@ -1,6 +1,6 @@
 <resources>
     <string name="settings">Настройки</string>
-    <string name="installation">Установка</string>
+    <string name="installation">Установить</string>
     <string name="builtin_installer">Встроенный установщик</string>
     <string name="builtin_installer_description">Быстрее, использует внутренние API для прямой установки образов</string>
     <string name="requires_root">Требуется root</string>
@@ -109,4 +109,41 @@
     <string name="logs_status_cat_saved">Cat-снимок сохранён</string>
     <string name="logs_status_cat_failed">Ошибка Cat: %1$s</string>
     <string name="logs_status_share_failed">Не удалось поделиться логом</string>
+
+    <string name="partitions_tab_title">Разделы</string>
+    <string name="partitions_add_image">Добавить образ</string>
+    <string name="partitions_add_title">Добавить образ DSU</string>
+    <string name="partitions_add_description">Образ будет добавлен в DSU-префикс %1$s.</string>
+    <string name="partitions_readonly">Подключить образ только для чтения</string>
+    <string name="partitions_confirm">Подтвердить</string>
+    <string name="partitions_cancel">Отмена</string>
+    <string name="partitions_cancel_transfer">Прервать передачу</string>
+    <string name="partitions_delete_title">Удалить образ?</string>
+    <string name="partitions_delete_description">%1$s будет удалён безвозвратно. Действие нельзя отменить.</string>
+    <string name="partitions_delete_confirm">Удалить</string>
+    <string name="partitions_replace_title">Заменить образ?</string>
+    <string name="partitions_replace_description">Содержимое %1$s будет перезаписано выбранным образом. Действие нельзя отменить.</string>
+    <string name="partitions_empty">DSU-образы на этом устройстве не найдены.</string>
+    <string name="partitions_privileged_title">Требуются привилегии</string>
+    <string name="partitions_privileged_description">Управление разделами доступно в режимах Root или System — оно работает напрямую с сервисом gsid.</string>
+    <string name="partitions_retry">Повторить</string>
+    <string name="partitions_image_title">Образ DSU</string>
+    <string name="partitions_action_replace">Заменить</string>
+    <string name="partitions_action_export">Экспорт</string>
+    <string name="partitions_action_delete">Удалить</string>
+    <string name="partitions_progress_adding">Добавление %1$s…</string>
+    <string name="partitions_progress_replacing">Замена %1$s…</string>
+    <string name="partitions_progress_exporting">Экспорт %1$s…</string>
+    <string name="partitions_progress_bytes">Скопировано %1$s из %2$s</string>
+    <string name="partitions_done">Операция завершена.</string>
+    <string name="partitions_busy">Уже выполняется другая операция с разделами.</string>
+    <string name="partitions_invalid_name">Имя образа содержит недопустимые символы.</string>
+    <string name="partitions_duplicate">Образ с таким именем уже существует.</string>
+    <string name="partitions_not_found">Образ больше не существует.</string>
+    <string name="partitions_size_invalid">Образ пустой или не выровнен по 512 байт.</string>
+    <string name="partitions_no_space">Недостаточно свободного места для этого образа.</string>
+    <string name="partitions_service_unavailable">Привилегированный сервис недоступен.</string>
+    <string name="partitions_operation_failed">Не удалось выполнить операцию с разделами.</string>
+    <string name="partitions_export_failed">Не удалось создать целевой файл.</string>
+    <string name="partitions_cancelled">Передача прервана.</string>
 </resources>

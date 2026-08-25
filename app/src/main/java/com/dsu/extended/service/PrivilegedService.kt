@@ -12,12 +12,23 @@ import android.os.Process
 import android.os.SystemProperties
 import android.os.image.IDynamicSystemService
 import android.os.storage.IStorageManager
+import android.gsi.IImageService
+import android.gsi.MappedImage
+import android.os.StatFs
 import android.os.storage.VolumeInfo
 import android.util.Log
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.system.exitProcess
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import com.dsu.extended.BuildConfig
+import com.dsu.extended.IPartitionTransferListener
 import com.dsu.extended.IPrivilegedService
+import com.dsu.extended.util.PartitionResult
 
 class PrivilegedService : IPrivilegedService.Stub() {
 
@@ -256,5 +267,353 @@ class PrivilegedService : IPrivilegedService.Stub() {
     override fun isInstalled(): Boolean {
         requiresDynamicSystem()
         return DYNAMIC_SYSTEM!!.isInstalled
+    }
+
+    private var GSI_SERVICE: IGsiService? = null
+
+    private fun getBinderOrNull(service: String): IBinder? {
+        return runCatching { getBinder(service) }.getOrNull()
+    }
+
+    private fun requiresGsiService(): IGsiService {
+        GSI_SERVICE?.let { return it }
+        val binder = getBinderOrNull("gsiservice")
+            ?: run {
+                setProp("ctl.start", "gsid")
+                val deadline = System.currentTimeMillis() + 10_000L
+                var found: IBinder? = null
+                while (System.currentTimeMillis() < deadline && found == null) {
+                    Thread.sleep(100L)
+                    found = getBinderOrNull("gsiservice")
+                }
+                found ?: throw IllegalStateException("gsiservice is unavailable")
+            }
+        return IGsiService.Stub.asInterface(binder).also { GSI_SERVICE = it }
+    }
+
+    override fun getImagePrefixes(): List<String> {
+        val gsi = runCatching { requiresGsiService() }.getOrNull()
+            ?: return emptyList()
+        val prefixes = buildList {
+            runCatching { gsi.installedDsuSlots }.getOrDefault(emptyList()).forEach { slot ->
+                add("$slot/$slot/")
+            }
+            runCatching { gsi.activeDsuSlot?.takeIf { it.isNotEmpty() } }.getOrNull()?.let { slot ->
+                add("$slot/$slot/")
+            }
+            runCatching { gsi.installedGsiImageDir.orEmpty() }.getOrNull()
+                ?.removePrefix("/data/gsi/")
+                ?.trim('/')
+                ?.takeIf { it.isNotEmpty() }
+                ?.let { add("$it/") }
+            add("dsu/dsu/")
+        }
+        return prefixes.distinct()
+    }
+
+    override fun getDsuImages(prefix: String?): List<String> {
+        if (prefix.isNullOrEmpty()) return emptyList()
+        val gsi = runCatching { requiresGsiService() }.getOrNull() ?: return emptyList()
+        return runCatching { gsi.openImageService(prefix).allBackingImages }.getOrDefault(emptyList())
+    }
+
+    override fun deleteDsuImage(prefix: String?, imageName: String?): Int {
+        val name = imageName ?: return PartitionResult.INVALID_NAME
+        if (!isValidImageName(name) || prefix.isNullOrEmpty()) return PartitionResult.INVALID_NAME
+        return runGsiOperation {
+            val imageService = requiresGsiService().openImageService(prefix)
+            if (!imageService.backingImageExists(name)) {
+                return@runGsiOperation PartitionResult.NOT_FOUND
+            }
+            if (imageService.isImageMapped(name)) {
+                imageService.unmapImageDevice(name)
+            }
+            imageService.deleteBackingImage(name)
+            PartitionResult.OK
+        }
+    }
+
+    private var transferThread: ExecutorService? = null
+    private var transferCancelled = AtomicBoolean(false)
+    private var transferListener: IPartitionTransferListener? = null
+
+    private fun transferExecutor(): ExecutorService {
+        if (transferThread == null) {
+            synchronized(this) {
+                if (transferThread == null) {
+                    transferThread = Executors.newSingleThreadExecutor { runnable ->
+                        Thread(runnable, "dsu-image-transfer").apply { isDaemon = true }
+                    }
+                }
+            }
+        }
+        return transferThread!!
+    }
+
+    override fun startAddDsuImage(
+        prefix: String?,
+        imageName: String?,
+        imageFd: ParcelFileDescriptor?,
+        imageSize: Long,
+        readOnly: Boolean,
+        listener: IPartitionTransferListener?,
+    ): Boolean = startWriteTransfer(prefix, imageName, imageFd, imageSize, readOnly, listener, replaceExisting = false)
+
+    override fun startReplaceDsuImage(
+        prefix: String?,
+        imageName: String?,
+        imageFd: ParcelFileDescriptor?,
+        imageSize: Long,
+        readOnly: Boolean,
+        listener: IPartitionTransferListener?,
+    ): Boolean = startWriteTransfer(prefix, imageName, imageFd, imageSize, readOnly, listener, replaceExisting = true)
+
+    override fun startExportDsuImage(
+        prefix: String?,
+        imageName: String?,
+        imageFd: ParcelFileDescriptor?,
+        listener: IPartitionTransferListener?,
+    ): Boolean {
+        val name = imageName ?: run {
+            imageFd?.close()
+            return false
+        }
+        if (!isValidImageName(name) || prefix.isNullOrEmpty() || imageFd == null) {
+            imageFd?.close()
+            return false
+        }
+        synchronized(this) {
+            if (isTransferRunning()) {
+                imageFd.close()
+                return false
+            }
+            beginTransfer(listener)
+        }
+        transferExecutor().execute {
+            val result = runGsiOperation {
+                val gsi = requiresGsiService()
+                val imageService = gsi.openImageService(prefix)
+                if (!imageService.backingImageExists(imageName)) {
+                    return@runGsiOperation PartitionResult.NOT_FOUND
+                }
+                if (imageService.isImageMapped(name)) {
+                    imageService.unmapImageDevice(name)
+                }
+                val mappedImage = MappedImage()
+                imageService.mapImageDevice(name, PartitionResult.MAP_TIMEOUT_MS, mappedImage)
+                try {
+                    exportToStream(imageService, name, mappedImage.path, imageFd)
+                } finally {
+                    imageService.unmapImageDevice(imageName)
+                }
+                PartitionResult.OK
+            }
+            finishTransfer(result)
+        }
+        return true
+    }
+
+    override fun cancelDsuImageTransfer() {
+        transferCancelled.set(true)
+    }
+
+    private fun isTransferRunning(): Boolean {
+        val executor = transferThread ?: return false
+        return !executor.isShutdown && !transferDone.get()
+    }
+
+    @Volatile
+    private var transferDone = AtomicBoolean(true)
+
+    private fun beginTransfer(listener: IPartitionTransferListener?) {
+        transferCancelled.set(false)
+        transferDone.set(false)
+        transferListener = listener
+    }
+
+    private fun finishTransfer(resultCode: Int) {
+        val listener = transferListener
+        transferListener = null
+        transferDone.set(true)
+        runCatching { listener?.onCompleted(resultCode) }
+    }
+
+    private fun startWriteTransfer(
+        prefix: String?,
+        imageName: String?,
+        imageFd: ParcelFileDescriptor?,
+        imageSize: Long,
+        readOnly: Boolean,
+        listener: IPartitionTransferListener?,
+        replaceExisting: Boolean,
+    ): Boolean {
+        val fd: ParcelFileDescriptor = imageFd ?: return false
+        val name = imageName ?: run {
+            fd.close()
+            return false
+        }
+        if (!isValidImageName(name) || prefix.isNullOrEmpty()) {
+            fd.close()
+            return false
+        }
+        if (imageSize <= 0 || imageSize % 512L != 0L) {
+            fd.close()
+            return false
+        }
+        synchronized(this) {
+            if (isTransferRunning()) {
+                fd.close()
+                return false
+            }
+            beginTransfer(listener)
+        }
+        transferExecutor().execute {
+            val result = runGsiOperation {
+                val gsi = requiresGsiService()
+                val dataDir = File("/data/gsi", prefix)
+                val freeBytes = runCatching { StatFs(dataDir.absolutePath).availableBytes }.getOrDefault(-1L)
+                if (freeBytes >= 0 && imageSize > freeBytes - 512L * 1024 * 1024) {
+                    return@runGsiOperation PartitionResult.NO_SPACE
+                }
+                val flags =
+                    if (readOnly) IImageService.CREATE_IMAGE_READONLY else IImageService.CREATE_IMAGE_DEFAULT
+                writeBackingImage(gsi, prefix, name, fd, imageSize, flags, replaceExisting)
+                PartitionResult.OK
+            }
+            finishTransfer(result)
+        }
+        return true
+    }
+
+    private fun writeBackingImage(
+        gsi: IGsiService,
+        prefix: String,
+        imageName: String,
+        imageFd: ParcelFileDescriptor,
+        imageSize: Long,
+        flags: Int,
+        replaceExisting: Boolean,
+    ) {
+        val imageService = gsi.openImageService(prefix)
+        val exists = imageService.backingImageExists(imageName)
+        if (exists && !replaceExisting) {
+            throw IllegalStateException("duplicate")
+        }
+        if (imageService.isImageMapped(imageName)) {
+            imageService.unmapImageDevice(imageName)
+        }
+        if (exists) {
+            imageService.deleteBackingImage(imageName)
+        }
+
+        var created = false
+        var mapped = false
+        val mappedImage = MappedImage()
+        try {
+            imageService.createBackingImage(imageName, imageSize, flags, null)
+            created = true
+            imageService.mapImageDevice(imageName, PartitionResult.MAP_TIMEOUT_MS, mappedImage)
+            mapped = true
+            copyStreamToDevice(imageFd, mappedImage.path, imageSize)
+        } catch (e: Exception) {
+            runCatching { if (mapped) imageService.unmapImageDevice(imageName) }
+            runCatching { if (created) imageService.deleteBackingImage(imageName) }
+            throw e
+        } finally {
+            runCatching { if (mapped) imageService.unmapImageDevice(imageName) }
+            imageFd.close()
+        }
+    }
+
+    private fun exportToStream(
+        imageService: IImageService,
+        imageName: String,
+        mappedPath: String,
+        imageFd: ParcelFileDescriptor,
+    ) {
+        val buffer = ByteArray(PartitionResult.COPY_BUFFER_BYTES)
+        FileInputStream(mappedPath).use { input ->
+            FileOutputStream(imageFd.fileDescriptor).use { output ->
+                var copied = 0L
+                var sinceProgress = 0L
+                while (true) {
+                    if (transferCancelled.get()) {
+                        throw IllegalStateException("cancelled")
+                    }
+                    val read = input.read(buffer)
+                    if (read < 0) break
+                    output.write(buffer, 0, read)
+                    copied += read.toLong()
+                    sinceProgress += read.toLong()
+                    if (sinceProgress >= PartitionResult.BYTES_PER_PROGRESS_STEP) {
+                        sinceProgress = 0L
+                        transferListener?.onProgress(copied, -1L)
+                    }
+                }
+                output.fd.sync()
+                transferListener?.onProgress(copied, copied)
+            }
+        }
+    }
+
+    private fun copyStreamToDevice(
+        imageFd: ParcelFileDescriptor,
+        mappedPath: String,
+        totalBytes: Long,
+    ) {
+        val buffer = ByteArray(PartitionResult.COPY_BUFFER_BYTES)
+        FileInputStream(imageFd.fileDescriptor).use { input ->
+            FileOutputStream(mappedPath).use { output ->
+                var copied = 0L
+                var sinceProgress = 0L
+                while (copied < totalBytes) {
+                    if (transferCancelled.get()) {
+                        throw IllegalStateException("cancelled")
+                    }
+                    val remaining = totalBytes - copied
+                    val request = minOf(buffer.size.toLong(), remaining).toInt()
+                    val read = input.read(buffer, 0, request)
+                    if (read < 0) break
+                    output.write(buffer, 0, read)
+                    copied += read.toLong()
+                    sinceProgress += read.toLong()
+                    if (sinceProgress >= PartitionResult.BYTES_PER_PROGRESS_STEP) {
+                        sinceProgress = 0L
+                        transferListener?.onProgress(copied, totalBytes)
+                    }
+                }
+                output.fd.sync()
+                if (copied != totalBytes) {
+                    throw IllegalStateException("short copy: $copied of $totalBytes")
+                }
+                transferListener?.onProgress(copied, totalBytes)
+            }
+        }
+    }
+
+    private inline fun runGsiOperation(block: () -> Int): Int {
+        return try {
+            block()
+        } catch (e: IllegalStateException) {
+            when (e.message) {
+                "duplicate" -> PartitionResult.DUPLICATE
+                "cancelled" -> PartitionResult.CANCELLED
+                else -> {
+                    Log.e(BuildConfig.APPLICATION_ID, "partition operation failed", e)
+                    PartitionResult.IO_ERROR
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(BuildConfig.APPLICATION_ID, "partition operation failed", e)
+            PartitionResult.SERVICE_UNAVAILABLE
+        }
+    }
+
+    private fun isValidImageName(imageName: String?): Boolean {
+        return !imageName.isNullOrBlank() && IMAGE_NAME_REGEX.matches(imageName)
+    }
+
+    private companion object {
+        val IMAGE_NAME_REGEX = Regex("[A-Za-z0-9_.-]+")
     }
 }

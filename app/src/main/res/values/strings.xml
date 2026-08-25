@@ -322,9 +322,46 @@
     <string name="close">Close</string>
     <string name="mreturn">Return</string>
 
-    <string name="installation">Installation</string>
+    <string name="installation">Install</string>
     <string name="discard">Discard</string>
 
     <string name="close_app">Close app</string>
     <string name="close_app_question">Close app?</string>
+
+    <string name="partitions_tab_title">Partitions</string>
+    <string name="partitions_add_image">Add image</string>
+    <string name="partitions_add_title">Add DSU image</string>
+    <string name="partitions_add_description">The image will be added to the DSU prefix %1$s.</string>
+    <string name="partitions_readonly">Mount image read-only</string>
+    <string name="partitions_confirm">Confirm</string>
+    <string name="partitions_cancel">Cancel</string>
+    <string name="partitions_cancel_transfer">Cancel transfer</string>
+    <string name="partitions_delete_title">Delete image?</string>
+    <string name="partitions_delete_description">%1$s will be permanently deleted. This action cannot be undone.</string>
+    <string name="partitions_delete_confirm">Delete</string>
+    <string name="partitions_replace_title">Replace image?</string>
+    <string name="partitions_replace_description">The contents of %1$s will be overwritten with the selected image. This action cannot be undone.</string>
+    <string name="partitions_empty">No DSU images found on this device.</string>
+    <string name="partitions_privileged_title">Privileged access required</string>
+    <string name="partitions_privileged_description">Partition management requires Root or System mode because it talks to the gsid service directly.</string>
+    <string name="partitions_retry">Retry</string>
+    <string name="partitions_image_title">DSU image</string>
+    <string name="partitions_action_replace">Replace</string>
+    <string name="partitions_action_export">Export</string>
+    <string name="partitions_action_delete">Delete</string>
+    <string name="partitions_progress_adding">Adding %1$s…</string>
+    <string name="partitions_progress_replacing">Replacing %1$s…</string>
+    <string name="partitions_progress_exporting">Exporting %1$s…</string>
+    <string name="partitions_progress_bytes">%1$s of %2$s copied</string>
+    <string name="partitions_done">Operation completed.</string>
+    <string name="partitions_busy">Another partition operation is already running.</string>
+    <string name="partitions_invalid_name">Image name contains unsupported characters.</string>
+    <string name="partitions_duplicate">An image with this name already exists.</string>
+    <string name="partitions_not_found">The image no longer exists.</string>
+    <string name="partitions_size_invalid">The image is empty or not 512-byte aligned.</string>
+    <string name="partitions_no_space">Not enough free space for this image.</string>
+    <string name="partitions_service_unavailable">The privileged service is unavailable.</string>
+    <string name="partitions_operation_failed">The partition operation failed.</string>
+    <string name="partitions_export_failed">Could not create the destination file.</string>
+    <string name="partitions_cancelled">Transfer cancelled.</string>
 </resources>

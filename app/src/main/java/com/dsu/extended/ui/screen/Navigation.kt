@@ -14,17 +14,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Description
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.rounded.InstallMobile
-import androidx.compose.material3.BottomAppBarDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FlexibleBottomAppBar
+import androidx.compose.material.icons.outlined.InstallMobile
+import androidx.compose.material.icons.rounded.Storage
+import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -35,7 +31,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -47,11 +42,17 @@ import com.dsu.extended.ui.screen.adb.AdbScreen
 import com.dsu.extended.ui.screen.home.Home
 import com.dsu.extended.ui.screen.libraries.LibrariesScreen
 import com.dsu.extended.ui.screen.logs.LogsScreen
+import com.dsu.extended.ui.screen.partitions.Partitions
 import com.dsu.extended.ui.screen.settings.Settings
+import com.dsu.extended.ui.components.FullWidthNavItem
+import com.dsu.extended.ui.components.FullWidthNavBar
 import com.dsu.extended.ui.theme.DSUAnimations
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.unit.dp
 
 object Destinations {
     const val Homepage = "home"
+    const val Partitions = "partitions"
     const val Logs = "logs"
     const val Preferences = "preferences"
     const val ADBInstallation = "adb_installation"
@@ -61,7 +62,7 @@ object Destinations {
 }
 
 private fun isMainTabRoute(route: String?): Boolean {
-    return route == Destinations.Homepage || route == Destinations.Logs
+    return route == Destinations.Homepage || route == Destinations.Partitions || route == Destinations.Logs
 }
 
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.mainTabEnterTransition(): EnterTransition {
@@ -116,6 +117,7 @@ fun Navigation() {
     }
 
     Scaffold(
+        containerColor = Color.Transparent,
         bottomBar = {
             AnimatedVisibility(
                 visible = showMainTabs,
@@ -150,9 +152,16 @@ fun Navigation() {
                 popEnterTransition = { DSUAnimations.screenPopEnterAnimation },
                 popExitTransition = { DSUAnimations.screenPopExitAnimation },
             ) {
-                Box(modifier = Modifier.padding(bottom = if (showMainTabs) innerPadding.calculateBottomPadding() else 0.dp)) {
-                    Home(navigate = { navigate(it) })
-                }
+                Home(navigate = { navigate(it) })
+            }
+            composable(
+                route = Destinations.Partitions,
+                enterTransition = { mainTabEnterTransition() },
+                exitTransition = { mainTabExitTransition() },
+                popEnterTransition = { DSUAnimations.screenPopEnterAnimation },
+                popExitTransition = { DSUAnimations.screenPopExitAnimation },
+            ) {
+                Partitions(navigate = { navigate(it) })
             }
             composable(
                 route = Destinations.Logs,
@@ -161,9 +170,7 @@ fun Navigation() {
                 popEnterTransition = { DSUAnimations.screenPopEnterAnimation },
                 popExitTransition = { DSUAnimations.screenPopExitAnimation },
             ) {
-                Box(modifier = Modifier.padding(bottom = if (showMainTabs) innerPadding.calculateBottomPadding() else 0.dp)) {
-                    LogsScreen(navigate = { navigate(it) })
-                }
+                LogsScreen(navigate = { navigate(it) })
             }
             composable(
                 route = Destinations.Preferences,
@@ -201,10 +208,10 @@ private data class MainTabItem(
     val route: String,
     val titleRes: Int,
     val icon: ImageVector,
+    val selectedIcon: ImageVector,
 )
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 private fun MainBottomTabs(
     currentRoute: String,
     onSelectRoute: (String) -> Unit,
@@ -216,38 +223,37 @@ private fun MainBottomTabs(
         MainTabItem(
             route = Destinations.Homepage,
             titleRes = R.string.installation,
-            icon = Icons.Rounded.InstallMobile,
+            icon = Icons.Outlined.InstallMobile,
+            selectedIcon = Icons.Rounded.InstallMobile,
+        ),
+        MainTabItem(
+            route = Destinations.Partitions,
+            titleRes = R.string.partitions_tab_title,
+            icon = Icons.Rounded.Storage,
+            selectedIcon = Icons.Rounded.Storage,
         ),
         MainTabItem(
             route = Destinations.Logs,
             titleRes = R.string.logs_tab_title,
-            icon = Icons.Rounded.Description,
+            icon = Icons.Outlined.Description,
+            selectedIcon = Icons.Rounded.Description,
         ),
     )
     val selectedIndex = tabs.indexOfFirst { it.route == currentRoute }.coerceAtLeast(0)
 
-    FlexibleBottomAppBar(
-        containerColor = if (isOledBlackTheme) Color.Black else MaterialTheme.colorScheme.surfaceContainer,
-        expandedHeight = 74.dp,
-        horizontalArrangement = BottomAppBarDefaults.FlexibleFixedHorizontalArrangement,
-    ) {
-        tabs.forEachIndexed { index, tab ->
-            NavigationBarItem(
-                selected = selectedIndex == index,
-                onClick = {
-                    hapticFeedback.performHapticFeedback(HapticFeedbackType.ContextClick)
-                    onSelectRoute(tab.route)
-                },
-                icon = { Icon(imageVector = tab.icon, contentDescription = null) },
-                label = { Text(text = stringResource(id = tab.titleRes)) },
-                colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
-                    selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    selectedTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                ),
+    FullWidthNavBar(
+        selectedIndex = selectedIndex,
+        onSelected = { index ->
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.ContextClick)
+            onSelectRoute(tabs[index].route)
+        },
+        items = tabs.map { tab ->
+            FullWidthNavItem(
+                label = stringResource(id = tab.titleRes),
+                icon = tab.icon,
+                selectedIcon = tab.selectedIcon,
             )
-        }
-    }
+        },
+        containerColor = if (isOledBlackTheme) Color.Black else colorScheme.surfaceContainer,
+    )
 }
