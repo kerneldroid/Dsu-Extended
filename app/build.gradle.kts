@@ -24,8 +24,8 @@ extensions.configure<ApplicationExtension>("android") {
 
     defaultConfig {
         applicationId = packageName
-        this.versionCode = 18
-        this.versionName = "1.2.2"
+        this.versionCode = 19
+        this.versionName = "1.2.3"
         val updateCheckUrl =
             (project.findProperty("UPDATE_CHECK_URL") as? String)
                 ?: "https://raw.githubusercontent.com/kerneldroid/Dsu-Extended/master/other/updater.json"
