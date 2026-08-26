@@ -11,6 +11,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -39,7 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -51,8 +52,8 @@ import androidx.compose.ui.unit.dp
 @Immutable
 data class FullWidthNavItem(
     val label: String,
-    val icon: ImageVector,
-    val selectedIcon: ImageVector = icon,
+    @param:DrawableRes val icon: Int,
+    @param:DrawableRes val selectedIcon: Int = icon,
 )
 
 private val IndicatorShape = RoundedCornerShape(16.dp)
@@ -188,7 +189,7 @@ private fun RowScope.FullWidthNavItem(
             }
 
             Icon(
-                imageVector = if (selected) item.selectedIcon else item.icon,
+                painter = painterResource(if (selected) item.selectedIcon else item.icon),
                 contentDescription = null,
                 tint = animatedColor,
                 modifier = Modifier

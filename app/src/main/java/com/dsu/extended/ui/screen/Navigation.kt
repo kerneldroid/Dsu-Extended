@@ -14,11 +14,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Description
+import androidx.annotation.DrawableRes
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.rounded.InstallMobile
 import androidx.compose.material.icons.outlined.InstallMobile
-import androidx.compose.material.icons.rounded.Storage
-import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -27,7 +26,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -207,8 +205,8 @@ fun Navigation() {
 private data class MainTabItem(
     val route: String,
     val titleRes: Int,
-    val icon: ImageVector,
-    val selectedIcon: ImageVector,
+    @param:DrawableRes val icon: Int,
+    @param:DrawableRes val selectedIcon: Int,
 )
 
 @Composable
@@ -223,20 +221,20 @@ private fun MainBottomTabs(
         MainTabItem(
             route = Destinations.Homepage,
             titleRes = R.string.installation,
-            icon = Icons.Outlined.InstallMobile,
-            selectedIcon = Icons.Rounded.InstallMobile,
+            icon = R.drawable.ic_nav_install,
+            selectedIcon = R.drawable.ic_nav_install_filled,
         ),
         MainTabItem(
             route = Destinations.Partitions,
             titleRes = R.string.partitions_tab_title,
-            icon = Icons.Rounded.Storage,
-            selectedIcon = Icons.Rounded.Storage,
+            icon = R.drawable.ic_nav_storage,
+            selectedIcon = R.drawable.ic_nav_storage_filled,
         ),
         MainTabItem(
             route = Destinations.Logs,
             titleRes = R.string.logs_tab_title,
-            icon = Icons.Outlined.Description,
-            selectedIcon = Icons.Rounded.Description,
+            icon = R.drawable.ic_nav_logs,
+            selectedIcon = R.drawable.ic_nav_logs_filled,
         ),
     )
     val selectedIndex = tabs.indexOfFirst { it.route == currentRoute }.coerceAtLeast(0)
