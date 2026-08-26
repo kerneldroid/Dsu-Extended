@@ -422,7 +422,6 @@ class PrivilegedService : IPrivilegedService.Stub() {
         return !executor.isShutdown && !transferDone.get()
     }
 
-    @Volatile
     private var transferDone = AtomicBoolean(true)
 
     private fun beginTransfer(listener: IPartitionTransferListener?) {

@@ -26,7 +26,8 @@ class LogcatDiagnostic(
 ) {
 
     private val tag = this.javaClass.simpleName
-    var logs = ""
+    private val logsBuilder = StringBuilder()
+    val logs: String get() = logsBuilder.toString()
     val isLogging = AtomicBoolean(false)
     var shouldLogEverything = false
 
@@ -37,6 +38,11 @@ class LogcatDiagnostic(
     private var lastErrorAnalysis: ErrorAnalysis? = null
     private val dateFormat = SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault())
 
+    private companion object {
+        const val MAX_RETAINED_LOG_CHARS = 1 shl 20
+        const val MAX_RETAINED_LOG_ENTRIES = 5000
+    }
+
     fun setGsiInfo(gsiInfo: GsiInfo) {
         currentGsiInfo = gsiInfo
     }
@@ -45,7 +51,7 @@ class LogcatDiagnostic(
         if (isLogging.get()) {
             destroy()
         }
-        logs = ""
+        logsBuilder.clear()
         logEntries.clear()
         isLogging.set(true)
         installationStartTime = System.currentTimeMillis()
@@ -62,7 +68,7 @@ class LogcatDiagnostic(
 
         CmdRunner.runReadEachLine(logCmd) { line ->
             if (logs.isEmpty()) {
-                logs = buildEnhancedHeader(prependString)
+                logsBuilder.clear().append(buildEnhancedHeader(prependString))
             }
 
             if (!isLogging.get()) {
@@ -75,7 +81,14 @@ class LogcatDiagnostic(
 
             // Format with timestamp and severity
             val formattedLine = formatLogLine(logEntry)
-            logs += "$formattedLine\n"
+            logsBuilder.append(formattedLine).append('\n')
+            if (logsBuilder.length > MAX_RETAINED_LOG_CHARS) {
+                val cutFrom = logsBuilder.indexOf('\n', logsBuilder.length - MAX_RETAINED_LOG_CHARS)
+                logsBuilder.delete(0, if (cutFrom >= 0) cutFrom + 1 else logsBuilder.length - MAX_RETAINED_LOG_CHARS)
+            }
+            if (logEntries.size > MAX_RETAINED_LOG_ENTRIES) {
+                logEntries.subList(0, logEntries.size - MAX_RETAINED_LOG_ENTRIES).clear()
+            }
             onLogLineReceived()
 
             // Check for installation start
@@ -154,7 +167,7 @@ class LogcatDiagnostic(
             source = source,
         )
         logEntries.add(entry)
-        logs += "${formatLogLine(entry)}\n"
+        logsBuilder.append("${formatLogLine(entry)}\n")
     }
 
     private fun processLogLine(line: String, logEntry: LogEntry) {
@@ -445,19 +458,19 @@ class LogcatDiagnostic(
             source = "error_handler",
         )
         logEntries.add(errorEntry)
-        logs += "\n${formatLogLine(errorEntry)}\n"
+        logsBuilder.append("\n${formatLogLine(errorEntry)}\n")
 
         if (possibleCauses.isNotEmpty()) {
-            logs += "┌─ Possible causes:\n"
+            logsBuilder.append("┌─ Possible causes:\n")
             possibleCauses.forEach { cause ->
-                logs += "│  • $cause\n"
+                logsBuilder.append("│  • $cause\n")
             }
         }
 
         if (suggestions.isNotEmpty()) {
-            logs += "├─ Suggestions:\n"
+            logsBuilder.append("├─ Suggestions:\n")
             suggestions.forEach { suggestion ->
-                logs += "│  💡 $suggestion\n"
+                logsBuilder.append("│  💡 $suggestion\n")
             }
         }
 
@@ -480,39 +493,31 @@ class LogcatDiagnostic(
             wasSuccessful = wasSuccessful,
         )
 
-        val report = if (wasSuccessful) {
-            DiagnosticReport(
-                gsiInfo = currentGsiInfo,
-                installationInfo = installationInfo,
-                logs = logEntries,
-            )
-        } else {
-            DiagnosticReport(
-                gsiInfo = currentGsiInfo,
-                installationInfo = installationInfo,
-                logs = logEntries,
-            )
-        }
+        val report = DiagnosticReport(
+            gsiInfo = currentGsiInfo,
+            installationInfo = installationInfo,
+            logs = logEntries,
+        )
 
         onDiagnosticReportGenerated?.invoke(report)
 
         // Append diagnostic summary to logs
-        logs += "\n"
-        logs += "═══════════════════════════════════════════════════════════════\n"
-        logs += "📊 DIAGNOSTIC SUMMARY\n"
-        logs += "═══════════════════════════════════════════════════════════════\n"
-        logs += "Status: ${if (wasSuccessful) "✅ SUCCESS" else "❌ FAILED"}\n"
-        logs += "Duration: ${(System.currentTimeMillis() - installationStartTime) / 1000}s\n"
+        logsBuilder.append("\n")
+        logsBuilder.append("═══════════════════════════════════════════════════════════════\n")
+        logsBuilder.append("📊 DIAGNOSTIC SUMMARY\n")
+        logsBuilder.append("═══════════════════════════════════════════════════════════════\n")
+        logsBuilder.append("Status: ${if (wasSuccessful) "✅ SUCCESS" else "❌ FAILED"}\n")
+        logsBuilder.append("Duration: ${(System.currentTimeMillis() - installationStartTime) / 1000}s\n")
 
         if (!wasSuccessful && report.errorAnalysis != null) {
-            logs += "Error Type: ${report.errorAnalysis.errorType}\n"
-            logs += "Severity: ${report.errorAnalysis.severity.emoji} ${report.errorAnalysis.severity.name}\n"
+            logsBuilder.append("Error Type: ${report.errorAnalysis.errorType}\n")
+            logsBuilder.append("Severity: ${report.errorAnalysis.severity.emoji} ${report.errorAnalysis.severity.name}\n")
         }
 
         if (report.suggestions.isNotEmpty()) {
-            logs += "\n💡 SUGGESTIONS:\n"
+            logsBuilder.append("\n💡 SUGGESTIONS:\n")
             report.suggestions.forEachIndexed { index, suggestion ->
-                logs += "${index + 1}. $suggestion\n"
+                logsBuilder.append("${index + 1}. $suggestion\n")
             }
         }
     }

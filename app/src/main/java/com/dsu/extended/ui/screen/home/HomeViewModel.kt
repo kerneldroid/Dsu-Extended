@@ -54,6 +54,10 @@ class HomeViewModel @Inject constructor(
 
     private val tag = this.javaClass.simpleName
 
+    private companion object {
+        const val LOG_PUSH_INTERVAL_MS = 250L
+    }
+
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
@@ -64,6 +68,7 @@ class HomeViewModel @Inject constructor(
 
     private var installationJob: Job? = null
     private var logger: LogcatDiagnostic? = null
+    private var lastLogPushRealtimeMs = 0L
     private val liveUpdateNotifier = InstallationLiveUpdateNotifier(application.applicationContext)
 
     private val allocPercentage = DevicePropUtils.getGsidBinaryAllowedPerc()
@@ -564,12 +569,22 @@ class HomeViewModel @Inject constructor(
 
     private fun onInstallationSuccess() {
         AppLogger.i(tag, "Installation marked as successful")
+        pushLogsNow()
         persistInstallationSnapshot("installation_success")
         liveUpdateNotifier.showSuccess(canRebootToDsu = false)
         updateInstallationCard { it.copy(installationStep = InstallationStep.INSTALL_SUCCESS) }
     }
 
     private fun onLogLineReceived() {
+        val currentLogger = logger ?: return
+        val now = android.os.SystemClock.elapsedRealtime()
+        if (now - lastLogPushRealtimeMs < LOG_PUSH_INTERVAL_MS) return
+        lastLogPushRealtimeMs = now
+        _uiState.update { it.copy(installationLogs = currentLogger.logs) }
+    }
+
+    private fun pushLogsNow() {
+        lastLogPushRealtimeMs = 0L
         val currentLogger = logger ?: return
         _uiState.update { it.copy(installationLogs = currentLogger.logs) }
     }

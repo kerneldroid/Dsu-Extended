@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,6 +36,7 @@ class PartitionsViewModel @Inject constructor(
     val uiState: StateFlow<PartitionsUiState> = _uiState.asStateFlow()
 
     private var exportDestination: ParcelFileDescriptor? = null
+    private var refreshJob: Job? = null
     private var replaceTarget: DsuImageEntry? = null
 
     fun markReplaceTarget(entry: DsuImageEntry) {
@@ -82,7 +84,8 @@ class PartitionsViewModel @Inject constructor(
             return
         }
         _uiState.update { it.copy(panel = PartitionsPanelState.Loading) }
-        viewModelScope.launch(Dispatchers.IO) {
+        refreshJob?.cancel()
+        refreshJob = viewModelScope.launch(Dispatchers.IO) {
             PrivilegedProvider.run(
                 onFail = {
                     _uiState.update { it.copy(panel = PartitionsPanelState.Loading) }

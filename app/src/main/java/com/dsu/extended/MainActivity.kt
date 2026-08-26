@@ -92,7 +92,8 @@ class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListe
     }
 
     private suspend fun setupSessionOperationMode() {
-        val preferredMode = resolvePreferredPrivilegedMode()
+        withContext(Dispatchers.IO) {
+            val preferredMode = resolvePreferredPrivilegedMode()
         if (preferredMode == PreferredPrivilegedMode.SHIZUKU || preferredMode == PreferredPrivilegedMode.ALL) {
             shouldCheckShizuku = true
         }
@@ -107,14 +108,15 @@ class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListe
                 preferredPrivilegedMode = preferredMode,
             )
         session.setOperationMode(operationMode)
-        AppLogger.i(
-            tag,
-            "Operation mode resolved",
-            "mode" to operationMode,
-            "checkShizuku" to shouldCheckShizuku,
-            "checkDhizuku" to shouldCheckDhizuku,
-            "preferredMode" to preferredMode,
-        )
+            AppLogger.i(
+                tag,
+                "Operation mode resolved",
+                "mode" to operationMode,
+                "checkShizuku" to shouldCheckShizuku,
+                "checkDhizuku" to shouldCheckDhizuku,
+                "preferredMode" to preferredMode,
+            )
+        }
     }
 
     private fun finishCheckAllIfReady() {
@@ -132,41 +134,45 @@ class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListe
     }
 
     fun requestPermissionsForCheckAll(onComplete: () -> Unit = {}) {
-        val hasRoot = runCatching { Shell.getShell().isRoot }.getOrDefault(false)
-        val shizukuNeedsPermission = Shizuku.pingBinder() && !OperationModeUtils.isShizukuPermissionGranted(this)
-        val dhizukuNeedsPermission =
-            runCatching { Dhizuku.init(this) && !Dhizuku.isPermissionGranted() }.getOrDefault(false)
-        AppLogger.d(
-            tag,
-            "Check ALL requested",
-            "root" to hasRoot,
-            "shizukuNeedsPermission" to shizukuNeedsPermission,
-            "dhizukuNeedsPermission" to dhizukuNeedsPermission,
-        )
+        lifecycleScope.launch {
+            val hasRoot = withContext(Dispatchers.IO) {
+                runCatching { Shell.getShell().isRoot }.getOrDefault(false)
+            }
+            val shizukuNeedsPermission =
+                Shizuku.pingBinder() && !OperationModeUtils.isShizukuPermissionGranted(this@MainActivity)
+            val dhizukuNeedsPermission =
+                runCatching { Dhizuku.init(this@MainActivity) && !Dhizuku.isPermissionGranted() }
+                    .getOrDefault(false)
+            AppLogger.d(
+                tag,
+                "Check ALL requested",
+                "root" to hasRoot,
+                "shizukuNeedsPermission" to shizukuNeedsPermission,
+                "dhizukuNeedsPermission" to dhizukuNeedsPermission,
+            )
 
-        if (!shizukuNeedsPermission && !dhizukuNeedsPermission) {
-            lifecycleScope.launch {
+            if (!shizukuNeedsPermission && !dhizukuNeedsPermission) {
                 refreshOperationModeAndService()
                 onComplete()
+                return@launch
             }
-            return
+
+            checkAllPendingCallback = onComplete
+            checkAllAwaitingShizukuPermission = shizukuNeedsPermission
+            checkAllAwaitingDhizukuPermission = dhizukuNeedsPermission
+
+            if (shizukuNeedsPermission) {
+                runCatching { Shizuku.removeRequestPermissionResultListener(REQUEST_PERMISSION_RESULT_LISTENER) }
+                Shizuku.addRequestPermissionResultListener(REQUEST_PERMISSION_RESULT_LISTENER)
+                askShizukuPermission()
+            }
+
+            if (dhizukuNeedsPermission) {
+                askDhizukuPermission()
+            }
+
+            finishCheckAllIfReady()
         }
-
-        checkAllPendingCallback = onComplete
-        checkAllAwaitingShizukuPermission = shizukuNeedsPermission
-        checkAllAwaitingDhizukuPermission = dhizukuNeedsPermission
-
-        if (shizukuNeedsPermission) {
-            runCatching { Shizuku.removeRequestPermissionResultListener(REQUEST_PERMISSION_RESULT_LISTENER) }
-            Shizuku.addRequestPermissionResultListener(REQUEST_PERMISSION_RESULT_LISTENER)
-            askShizukuPermission()
-        }
-
-        if (dhizukuNeedsPermission) {
-            askDhizukuPermission()
-        }
-
-        finishCheckAllIfReady()
     }
 
     private suspend fun refreshOperationModeAndService() {

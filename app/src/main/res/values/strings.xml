@@ -69,35 +69,28 @@
 
     <!-- Already installed DSU card -->
     <string name="discard_dsu_otg">A DSU installation is already present, discard to continue?\n\n**All data stored in DSU installation will be deleted.</string>
-    <string name="discarding">Discarding…</string>
     <string name="discard_dsu">Discard DSU</string>
 
     <!-- Allocation error card -->
-    <string name="allocation_error">Allocation error</string>
     <string name="allocation_error_description">Allocation on sdcard isn\'t working, there are some fixes you can try:\n - Install Dsu Extended Magisk\'s module.\n - Unmount sdcard (you can set this option permanently in settings).</string>
     <string name="allocation_error_action">Unmount SD and retry</string>
 
     <!-- No free storage error card -->
-    <string name="storage_error">Storage error</string>
     <string name="storage_error_description">Android requires at least %1$s%% of free storage to proceed installation, free up some space and try again.</string>
 
     <!-- Filesystem features not found error card -->
-    <string name="fs_features_error">FS features unavailable</string>
     <string name="fs_features_error_description">Your kernel is likely to be registering f2fs in different path that one expected from GSI daemon, there are some fixes you can try:\n - Install Dsu Extended Magisk\'s module.\n - Changing kernel.</string>
 
     <!-- SELinux error card -->
-    <string name="selinux_error">SELinux error</string>
     <string name="selinux_error_description">Looks like SELinux denials are preventing DSU installation, there are some fixes you can try:\n - Install Dsu Extended Magisk\'s module.\n - If you\'re using a sdcard, try to unmount it (there is a option for that in settings section).\n - Change your SELinux to permissive (not recommended, weakens your device security).</string>
     <string name="selinux_error_action">Retry with permissive</string>
 
     <!-- Extents error card -->
-    <string name="extents_error_title">Extents error</string>
     <string name="extents_error_description">On Android 10 devices, images/filesystem needs to have more than 512 extents, there are some fixes you can try:\n - Install Dsu Extended Magisk\'s module.</string>
 
     <!-- Other errors card -->
     <string name="failed_create_partition">Failed to create %1$s partition.</string>
     <string name="unknown_error">Unknown error.</string>
-    <string name="validation_timeout_message">Image validation timed out. The selected file source is too slow or unavailable.</string>
     <string name="error">Error</string>
     <string name="try_again">Try again</string>
     <string name="view_logs">View logs</string>
@@ -146,18 +139,13 @@
 
     <string name="settings">Settings</string>
 
-    <string name="experimental_feature">Experimental feature</string>
-    <string name="experimental_feature_description">This feature is under testing and may be unstable, are you sure?</string>
 
     <string name="builtin_installer">Built-in installer</string>
     <string name="builtin_installer_description">Faster, use internal APIs to install images directly</string>
-    <string name="requires_root">Requires root</string>
 
     <string name="unmount_sd_title">Unmount SD</string>
     <string name="unmount_sd_description">Temporary unmount sd when installing</string>
 
-    <string name="warning_storage_check_title">Warning</string>
-    <string name="warning_storage_check_description">DSU installation will allocate some free space on your device, disabling storage checks may let into errors.\nThis option is not recommended. Only continue if you know what you\'re doing!</string>
 
     <string name="storage_check_title">Disable storage check</string>
     <string name="storage_check_description">Disable userdata storage checking, not recommended</string>
@@ -173,7 +161,6 @@
 
     <string name="operation_mode">Operation mode</string>
     <string name="operation_mode_preferred_all">Preferred: ALL</string>
-    <string name="operation_mode_preferred_auto">Preferred: Auto</string>
     <string name="operation_mode_preferred_root">Preferred: Root</string>
     <string name="operation_mode_preferred_shizuku">Preferred: Shizuku</string>
     <string name="operation_mode_preferred_dhizuku">Preferred: Dhizuku</string>
@@ -186,8 +173,6 @@
     <string name="operation_mode_force_shizuku_description">Use Shizuku instead of Root when both are available</string>
     <string name="operation_mode_force_dhizuku">Force Dhizuku mode</string>
     <string name="operation_mode_force_dhizuku_description">Use Dhizuku Device Owner backend when available</string>
-    <string name="operation_mode_force_auto">Auto mode selection</string>
-    <string name="operation_mode_force_auto_description">Use automatic mode priority</string>
 
     <string name="theme_mode">Theme mode</string>
     <string name="theme_mode_system">System</string>
@@ -220,14 +205,6 @@
     <string name="check_updates_text_found">New %1$s version found</string>
     <string name="check_updates_text_updated">Running latest version</string>
     <string name="check_all_title">Check ALL</string>
-    <string name="check_all_status_available">available</string>
-    <string name="check_all_status_unavailable">unavailable</string>
-    <string name="check_all_root_short">Root: %1$s</string>
-    <string name="check_all_shizuku_short">Shizuku: %1$s</string>
-    <string name="check_all_dhizuku_short">Dhizuku: %1$s</string>
-    <string name="check_all_result_ready">GSI privileged launch: available</string>
-    <string name="check_all_result_unavailable">GSI privileged launch: unavailable</string>
-    <string name="check_all_action_recheck">Recheck</string>
     <string name="changelog">Changelog</string>
     <string name="download">Download</string>
 
@@ -245,7 +222,6 @@
     <string name="libraries_description">Libraries used in this app</string>
 
     <string name="role_developer">Developer</string>
-    <string name="role_second_developer">2nd dev</string>
     <string name="role_design_icon">Design reference, app icon</string>
 
     <string name="translators_title">Translators</string>
@@ -313,7 +289,6 @@
 
     <string name="no">No</string>
     <string name="yes">Yes</string>
-    <string name="ok">OK</string>
 
     <string name="grant">Grant</string>
     <string name="refuse">Refuse</string>
@@ -325,11 +300,8 @@
     <string name="installation">Install</string>
     <string name="discard">Discard</string>
 
-    <string name="close_app">Close app</string>
-    <string name="close_app_question">Close app?</string>
 
     <string name="partitions_tab_title">Partitions</string>
-    <string name="partitions_add_image">Add image</string>
     <string name="partitions_add_title">Add DSU image</string>
     <string name="partitions_add_description">The image will be added to the DSU prefix %1$s.</string>
     <string name="partitions_readonly">Mount image read-only</string>

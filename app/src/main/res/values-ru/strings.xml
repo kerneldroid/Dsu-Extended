@@ -3,7 +3,6 @@
     <string name="installation">Установить</string>
     <string name="builtin_installer">Встроенный установщик</string>
     <string name="builtin_installer_description">Быстрее, использует внутренние API для прямой установки образов</string>
-    <string name="requires_root">Требуется root</string>
     <string name="unmount_sd_title">Отключать SD-карту</string>
     <string name="unmount_sd_description">Временно отключать SD-карту во время установки</string>
     <string name="keep_screen_on">Не выключать экран</string>
@@ -15,7 +14,6 @@
     <string name="other">Другое</string>
     <string name="operation_mode">Режим работы</string>
     <string name="operation_mode_preferred_all">Предпочтительно: ALL</string>
-    <string name="operation_mode_preferred_auto">Предпочтительно: Авто</string>
     <string name="operation_mode_preferred_root">Предпочтительно: Root</string>
     <string name="operation_mode_preferred_shizuku">Предпочтительно: Shizuku</string>
     <string name="operation_mode_preferred_dhizuku">Предпочтительно: Dhizuku</string>
@@ -27,8 +25,6 @@
     <string name="operation_mode_force_shizuku_description">Использовать Shizuku вместо Root, если доступны оба</string>
     <string name="operation_mode_force_dhizuku">Принудительно Dhizuku</string>
     <string name="operation_mode_force_dhizuku_description">Использовать Device Owner backend Dhizuku, если доступен</string>
-    <string name="operation_mode_force_auto">Автоматический выбор режима</string>
-    <string name="operation_mode_force_auto_description">Использовать автоматический приоритет режимов</string>
     <string name="theme_mode">Тема</string>
     <string name="theme_mode_system">Системная</string>
     <string name="theme_mode_light">Светлая</string>
@@ -45,7 +41,6 @@
     <string name="dynamic_color_description_on">Цвета Material You из обоев (Android 12+) с применением выбранного стиля палитры</string>
     <string name="dynamic_color_description_off">Использовать выбранную цветовую палитру Material</string>
     <string name="validating_image">Проверка образа…</string>
-    <string name="validation_timeout_message">Проверка образа заняла слишком много времени. Источник файла слишком медленный или недоступен.</string>
     <string name="live_update_channel_name">Живые обновления установки</string>
     <string name="live_update_channel_description">Прогресс и состояния установки DSU</string>
     <string name="live_update_notification_title">Установка DSU выполняется</string>
@@ -60,14 +55,6 @@
     <string name="check_updates_text_found">Найдена новая версия %1$s</string>
     <string name="check_updates_text_updated">Установлена последняя версия</string>
     <string name="check_all_title">Check ALL</string>
-    <string name="check_all_status_available">доступен</string>
-    <string name="check_all_status_unavailable">недоступен</string>
-    <string name="check_all_root_short">Root: %1$s</string>
-    <string name="check_all_shizuku_short">Shizuku: %1$s</string>
-    <string name="check_all_dhizuku_short">Dhizuku: %1$s</string>
-    <string name="check_all_result_ready">Привилегированная загрузка GSI: доступна</string>
-    <string name="check_all_result_unavailable">Привилегированная загрузка GSI: недоступна</string>
-    <string name="check_all_action_recheck">Перепроверить</string>
     <string name="application">Приложение</string>
     <string name="github_repo">Репозиторий GitHub</string>
     <string name="github_repo_description">Исходный код на GitHub</string>
@@ -111,7 +98,6 @@
     <string name="logs_status_share_failed">Не удалось поделиться логом</string>
 
     <string name="partitions_tab_title">Разделы</string>
-    <string name="partitions_add_image">Добавить образ</string>
     <string name="partitions_add_title">Добавить образ DSU</string>
     <string name="partitions_add_description">Образ будет добавлен в DSU-префикс %1$s.</string>
     <string name="partitions_readonly">Подключить образ только для чтения</string>

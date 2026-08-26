@@ -61,7 +61,7 @@ import com.dsu.extended.ui.components.buttons.PrimaryButton
 import com.dsu.extended.ui.screen.Destinations
 import com.dsu.extended.util.StoredLogEntry
 import com.dsu.extended.util.StoredLogType
-import com.dsu.extended.util.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.verticalScroll

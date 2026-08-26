@@ -33,7 +33,7 @@ data class StoredLogEntry(
 object LogsStore {
     private const val LOGS_DIR_NAME = "dsu_logs"
     private val filePattern = Regex("^([a-z_]+)_([0-9]{8}_[0-9]{6})_(.+)\\.log$")
-    private val timestampFileFormat = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
+    private val timestampFileFormat = ThreadLocal.withInitial { SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US) }
 
     private fun logsDir(context: Context): File {
         val dir = File(context.filesDir, LOGS_DIR_NAME)
@@ -55,7 +55,7 @@ object LogsStore {
         title: String,
         content: String,
     ): StoredLogEntry {
-        val timestamp = timestampFileFormat.format(Date())
+        val timestamp = timestampFileFormat.get().format(Date())
         val normalizedTitle = sanitizeTitle(title)
         val file = File(logsDir(context), "${type.slug}_${timestamp}_$normalizedTitle.log")
         file.writeText(content, Charsets.UTF_8)
@@ -79,7 +79,7 @@ object LogsStore {
         }
         val match = filePattern.matchEntire(file.name)
         val current = parseFile(file)
-        val timestamp = match?.groupValues?.getOrNull(2) ?: timestampFileFormat.format(Date(current.createdAtMillis))
+        val timestamp = match?.groupValues?.getOrNull(2) ?: timestampFileFormat.get().format(Date(current.createdAtMillis))
         val type = match?.groupValues?.getOrNull(1) ?: current.type.slug
         val renamed = File(file.parentFile, "${type}_${timestamp}_${sanitizeTitle(newTitle)}.log")
         if (renamed.absolutePath == file.absolutePath) {
@@ -173,7 +173,7 @@ object LogsStore {
             if (parsedDate.isNullOrBlank()) {
                 file.lastModified()
             } else {
-                timestampFileFormat.parse(parsedDate)?.time ?: file.lastModified()
+                timestampFileFormat.get().parse(parsedDate)?.time ?: file.lastModified()
             }
         }.getOrDefault(file.lastModified())
         return StoredLogEntry(

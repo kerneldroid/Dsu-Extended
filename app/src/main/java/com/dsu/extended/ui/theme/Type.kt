@@ -347,17 +347,12 @@ fun createSystemTypography(): Typography {
 }
 
 val AppFontFamily = GoogleSansFlexFamily
-val Typography = createExpressiveTypography(AppFontPreset.GOOGLE_SANS_FLEX)
 
 @Immutable
 data class DsuTextStyleSet(
     val cardTitle: TextStyle,
     val progressText: TextStyle,
-    val statusText: TextStyle,
-    val logText: TextStyle,
-    val errorText: TextStyle,
     val suggestionText: TextStyle,
-    val deviceInfoText: TextStyle,
     val buttonText: TextStyle,
 )
 
@@ -377,40 +372,12 @@ fun createDsuTextStyles(fontFamily: FontFamily): DsuTextStyleSet {
             lineHeight = 40.sp,
             letterSpacing = (-0.5).sp,
         ),
-        statusText = TextStyle(
-            fontFamily = fontFamily,
-            fontWeight = FontWeight.Medium,
-            fontSize = 14.sp,
-            lineHeight = 20.sp,
-            letterSpacing = 0.25.sp,
-        ),
-        logText = TextStyle(
-            fontFamily = fontFamily,
-            fontWeight = FontWeight.Normal,
-            fontSize = 11.sp,
-            lineHeight = 16.sp,
-            letterSpacing = 0.sp,
-        ),
-        errorText = TextStyle(
-            fontFamily = fontFamily,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 14.sp,
-            lineHeight = 20.sp,
-            letterSpacing = 0.25.sp,
-        ),
         suggestionText = TextStyle(
             fontFamily = fontFamily,
             fontWeight = FontWeight.Medium,
             fontSize = 13.sp,
             lineHeight = 18.sp,
             letterSpacing = 0.25.sp,
-        ),
-        deviceInfoText = TextStyle(
-            fontFamily = fontFamily,
-            fontWeight = FontWeight.Normal,
-            fontSize = 12.sp,
-            lineHeight = 16.sp,
-            letterSpacing = 0.4.sp,
         ),
         buttonText = TextStyle(
             fontFamily = fontFamily,
@@ -431,20 +398,8 @@ object DSUTextStyles {
     val progressText: TextStyle
         @Composable get() = LocalDsuTextStyles.current.progressText
 
-    val statusText: TextStyle
-        @Composable get() = LocalDsuTextStyles.current.statusText
-
-    val logText: TextStyle
-        @Composable get() = LocalDsuTextStyles.current.logText
-
-    val errorText: TextStyle
-        @Composable get() = LocalDsuTextStyles.current.errorText
-
     val suggestionText: TextStyle
         @Composable get() = LocalDsuTextStyles.current.suggestionText
-
-    val deviceInfoText: TextStyle
-        @Composable get() = LocalDsuTextStyles.current.deviceInfoText
 
     val buttonText: TextStyle
         @Composable get() = LocalDsuTextStyles.current.buttonText

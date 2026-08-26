@@ -201,74 +201,11 @@ fun CardBox(
 /**
  * Elevated card variant for primary content
  */
-@Composable
-fun ElevatedCardBox(
-    modifier: Modifier = Modifier,
-    cardTitle: String = "",
-    addToggle: Boolean = false,
-    isToggleChecked: Boolean = false,
-    isToggleEnabled: Boolean = true,
-    onCheckedChange: ((Boolean) -> Unit) = {},
-    content: @Composable (ColumnScope) -> Unit,
-) {
-    CardBox(
-        modifier = modifier,
-        cardTitle = cardTitle,
-        addToggle = addToggle,
-        isToggleChecked = isToggleChecked,
-        isToggleEnabled = isToggleEnabled,
-        variant = CardVariant.ELEVATED,
-        onCheckedChange = onCheckedChange,
-        content = content,
-    )
-}
 
 /**
  * Gradient card for accented content
  */
-@Composable
-fun GradientCardBox(
-    modifier: Modifier = Modifier,
-    cardTitle: String = "",
-    variant: CardVariant = CardVariant.GRADIENT_PRIMARY,
-    content: @Composable (ColumnScope) -> Unit,
-) {
-    CardBox(
-        modifier = modifier,
-        cardTitle = cardTitle,
-        variant = variant,
-        content = content,
-    )
-}
 
 /**
  * Installation progress card with larger shape
  */
-@Composable
-fun InstallationCardBox(
-    modifier: Modifier = Modifier,
-    content: @Composable (ColumnScope) -> Unit,
-) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .animateContentSize(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioLowBouncy,
-                    stiffness = Spring.StiffnessMediumLow,
-                ),
-            )
-            .shadow(
-                elevation = 8.dp,
-                shape = DSUShapes.InstallationCardShape,
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-            )
-            .clip(DSUShapes.InstallationCardShape)
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
-            .padding(20.dp),
-    ) {
-        Column {
-            content(this)
-        }
-    }
-}

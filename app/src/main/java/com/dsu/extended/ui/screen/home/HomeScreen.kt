@@ -45,7 +45,7 @@ import com.dsu.extended.ui.sdialogs.DiscardDSUSheet
 import com.dsu.extended.ui.sdialogs.ImageSizeWarningSheet
 import com.dsu.extended.ui.sdialogs.ViewLogsBottomSheet
 import com.dsu.extended.ui.util.KeepScreenOn
-import com.dsu.extended.util.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.Column
