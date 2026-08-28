@@ -48,9 +48,8 @@ object PrivilegedProvider {
 
     // Blocking
     fun getService(): IPrivilegedService {
-        if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
-            AppLogger.e(tag, "getService() called from main thread! This will cause ANR.")
-            // We still continue to not break existing logic, but this must be fixed
+        check(android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) {
+            "getService() must not be called from the main thread"
         }
         var timeout = 0
         while (!isConnected()) {

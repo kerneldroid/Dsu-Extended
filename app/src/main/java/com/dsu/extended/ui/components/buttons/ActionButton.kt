@@ -51,20 +51,11 @@ fun ActionButton(
     val pressedShape = RoundedCornerShape(10.dp)
 
     val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.97f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
-        label = "actionButtonScale",
-    )
 
     if (textButton) {
         TextButton(
             onClick = onClick,
-            modifier = modifier.scale(scale),
+            modifier = modifier,
             interactionSource = interactionSource,
             shapes = ButtonDefaults.shapes(
                 shape = baseShape,
@@ -99,7 +90,7 @@ fun ActionButton(
         FilledTonalButton(
             modifier = modifier
                 .defaultMinSize(minHeight = 46.dp)
-                .scale(scale),
+                ,
             onClick = onClick,
             enabled = isEnabled,
             interactionSource = interactionSource,

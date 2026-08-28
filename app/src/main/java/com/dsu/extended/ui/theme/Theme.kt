@@ -67,8 +67,6 @@ enum class ColorPaletteStyle {
     }
 }
 
-val LocalUiStyle = staticCompositionLocalOf { UiStyle.EXPRESSIVE }
-
 private fun ColorScheme.toOledSurfaceScheme(): ColorScheme {
     return copy(
         background = Color(0xFF000000),
@@ -92,7 +90,7 @@ private fun ColorScheme.toOledSurfaceScheme(): ColorScheme {
     )
 }
 
-private fun materialColorScheme(
+internal fun materialColorScheme(
     seedColor: Color,
     useDarkTheme: Boolean,
     colorPaletteStyle: ColorPaletteStyle,
@@ -224,7 +222,6 @@ fun DsuExtendedTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
     colorPaletteStyle: ColorPaletteStyle = ColorPaletteStyle.TONAL_SPOT,
     appFontPreset: AppFontPreset = AppFontPreset.GOOGLE_SANS_FLEX,
-    uiStyle: UiStyle = UiStyle.EXPRESSIVE,
     animateColors: Boolean = true,
     content: @Composable () -> Unit,
 ) {
@@ -322,7 +319,6 @@ fun DsuExtendedTheme(
     @Composable
     fun ApplyThemeContent() {
         CompositionLocalProvider(
-            LocalUiStyle provides uiStyle,
             LocalDsuTextStyles provides dsuTextStyles,
         ) {
             MaterialExpressiveTheme(

@@ -21,7 +21,6 @@ import com.dsu.extended.preferences.AppPrefs
 import com.dsu.extended.ui.theme.AppFontPreset
 import com.dsu.extended.ui.theme.ColorPaletteStyle
 import com.dsu.extended.ui.theme.ThemeMode
-import com.dsu.extended.ui.theme.UiStyle
 import com.dsu.extended.util.OperationMode
 import com.dsu.extended.util.OperationModeUtils
 import com.dsu.extended.util.PreferredPrivilegedMode
@@ -73,7 +72,6 @@ class SettingsViewModel @Inject constructor(
                     hasDhizukuAccess = hasDhizuku,
                     canLoadGsiPrivileged = canLoadGsiPrivileged,
                     preferredPrivilegedMode = preferredMode,
-                    uiStyle = UiStyle.EXPRESSIVE,
                     appFontPreset = appFontPreset,
                     themeMode = themeMode,
                     useDynamicColor = dynamicColor,

@@ -336,4 +336,24 @@
     <string name="partitions_operation_failed">The partition operation failed.</string>
     <string name="partitions_export_failed">Could not create the destination file.</string>
     <string name="partitions_cancelled">Transfer cancelled.</string>
+
+    <string name="inspector_title">GSI inspector</string>
+    <string name="inspector_description">Metadata and files of installed DSU images</string>
+    <string name="inspector_pick_image">Choose image</string>
+    <string name="inspector_metadata_title">Image metadata</string>
+    <string name="inspector_meta_android_version">Android version</string>
+    <string name="inspector_meta_sdk_version">SDK version</string>
+    <string name="inspector_meta_cpu_abi">CPU ABI</string>
+    <string name="inspector_meta_vndk">VNDK version</string>
+    <string name="inspector_meta_security_patch">Security patch</string>
+    <string name="inspector_meta_fingerprint">Build fingerprint</string>
+    <string name="inspector_meta_treble">Treble compliant</string>
+    <string name="inspector_breadcrumb_root">Image root</string>
+    <string name="inspector_folder_label">Folder</string>
+    <string name="inspector_loading_files">Loading files…</string>
+    <string name="inspector_empty_dir">This folder is empty.</string>
+    <string name="inspector_mount_failed">Could not mount or read the image.</string>
+    <string name="inspector_export_failed">Could not export the file.</string>
+    <string name="inspector_privileged_description">Image inspection requires Root mode because partition images are mounted read-only.</string>
+    <string name="discard_in_progress">Removing DSU…</string>
 </resources>

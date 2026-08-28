@@ -55,7 +55,6 @@ import com.dsu.extended.ui.theme.AppFontPreset
 import com.dsu.extended.ui.theme.ColorPaletteStyle
 import com.dsu.extended.ui.theme.DsuExtendedTheme
 import com.dsu.extended.ui.theme.ThemeMode
-import com.dsu.extended.ui.theme.UiStyle
 import com.dsu.extended.util.AppLogger
 import com.dsu.extended.util.DataStoreUtils
 import com.dsu.extended.util.OperationMode
@@ -199,12 +198,9 @@ class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListe
     private val SHIZUKU_REQUEST_CODE = 1000
     private val REQUEST_PERMISSION_RESULT_LISTENER = this::onRequestPermissionResult
 
-    // Runtime permission requests (notifications, Shizuku pre-v11 fallback).
+    // Runtime permission request (notification permission).
     private val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
-            if (grants[ShizukuProvider.PERMISSION] == true) {
-                bindShizuku()
-            }
             if (checkAllAwaitingShizukuPermission) {
                 checkAllAwaitingShizukuPermission = false
                 finishCheckAllIfReady()
@@ -230,11 +226,7 @@ class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListe
     }
 
     private fun askShizukuPermission() {
-        if (Shizuku.isPreV11() || Shizuku.getVersion() < 11) {
-            permissionLauncher.launch(arrayOf(ShizukuProvider.PERMISSION))
-        } else {
-            Shizuku.requestPermission(SHIZUKU_REQUEST_CODE)
-        }
+        Shizuku.requestPermission(SHIZUKU_REQUEST_CODE)
     }
 
     override fun onRequestPermissionResult(requestCode: Int, grantResult: Int) {
@@ -481,7 +473,6 @@ class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListe
             val colorPaletteStyle = ColorPaletteStyle.fromPreference(colorPalettePreference)
             val useDynamicColor = preferences[booleanPreferencesKey(AppPrefs.USE_DYNAMIC_COLOR)] ?: false
             DsuExtendedTheme(
-                uiStyle = UiStyle.EXPRESSIVE,
                 themeMode = themeMode,
                 dynamicColor = useDynamicColor,
                 colorPaletteStyle = colorPaletteStyle,

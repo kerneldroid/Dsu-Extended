@@ -4,7 +4,6 @@ import com.dsu.extended.preferences.AppPrefs
 import com.dsu.extended.ui.theme.AppFontPreset
 import com.dsu.extended.ui.theme.ColorPaletteStyle
 import com.dsu.extended.ui.theme.ThemeMode
-import com.dsu.extended.ui.theme.UiStyle
 import com.dsu.extended.util.PreferredPrivilegedMode
 
 enum class DialogSheetState {
@@ -34,7 +33,6 @@ data class SettingsUiState(
     val canLoadGsiPrivileged: Boolean = false,
     val isDeveloperOptionsEnabled: Boolean = false,
     val preferredPrivilegedMode: PreferredPrivilegedMode = PreferredPrivilegedMode.ALL,
-    val uiStyle: UiStyle = UiStyle.EXPRESSIVE,
     val appFontPreset: AppFontPreset = AppFontPreset.SYSTEM_DEFAULT,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val useDynamicColor: Boolean = false,

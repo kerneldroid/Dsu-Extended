@@ -31,8 +31,8 @@ class FilenameUtils {
          */
         fun getFilePath(uri: Uri, addQuotes: Boolean = false): String {
             val input = uri.path.toString()
-            val safStorage = input.split("/document/")[1].replace("/tree/", "")
-            val path = safStorage.split(":")[1]
+            val safStorage = input.substringAfter("/document/", "").replace("/tree/", "")
+            val path = safStorage.substringAfter(':', "")
             if (path.contains("/storage/emulated")) {
                 return if (addQuotes) "'file://'$path" else "file://$path"
             }

@@ -41,6 +41,7 @@ import com.dsu.extended.ui.screen.home.Home
 import com.dsu.extended.ui.screen.libraries.LibrariesScreen
 import com.dsu.extended.ui.screen.logs.LogsScreen
 import com.dsu.extended.ui.screen.partitions.Partitions
+import com.dsu.extended.ui.screen.inspector.GsiInspectorScreen
 import com.dsu.extended.ui.screen.settings.Settings
 import com.dsu.extended.ui.components.FullWidthNavItem
 import com.dsu.extended.ui.components.FullWidthNavBar
@@ -53,6 +54,7 @@ object Destinations {
     const val Partitions = "partitions"
     const val Logs = "logs"
     const val Preferences = "preferences"
+    const val GsiInspector = "gsi_inspector"
     const val ADBInstallation = "adb_installation"
     const val About = "about"
     const val Libraries = "libraries"
@@ -170,6 +172,13 @@ fun Navigation() {
             ) {
                 LogsScreen(navigate = { navigate(it) })
             }
+            composable(
+                route = Destinations.GsiInspector,
+                enterTransition = { DSUAnimations.screenEnterAnimation },
+                exitTransition = { DSUAnimations.screenExitAnimation },
+                popEnterTransition = { DSUAnimations.screenPopEnterAnimation },
+                popExitTransition = { DSUAnimations.screenPopExitAnimation },
+            ) { GsiInspectorScreen(navigate = { navigate(it) }) }
             composable(
                 route = Destinations.Preferences,
                 enterTransition = { DSUAnimations.screenEnterAnimation },

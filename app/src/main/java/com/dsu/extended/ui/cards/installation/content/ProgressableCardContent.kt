@@ -58,9 +58,7 @@ import com.dsu.extended.ui.components.ExpressiveIndeterminateLoadingBar
 import com.dsu.extended.ui.components.ExpressiveProgressBar
 import com.dsu.extended.ui.theme.DSUShapes
 import com.dsu.extended.ui.theme.DSUTextStyles
-import com.dsu.extended.ui.theme.LocalUiStyle
 import com.dsu.extended.ui.theme.SemanticColors
-import com.dsu.extended.ui.theme.UiStyle
 import com.dsu.extended.ui.theme.AppFontFamily
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)

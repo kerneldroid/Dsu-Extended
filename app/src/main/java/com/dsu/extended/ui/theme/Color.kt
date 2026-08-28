@@ -147,12 +147,3 @@ object GradientColors {
         Color(0xFFFFCC80),
     )
 }
-
-// Legacy colors for backward compatibility
-val Blue80 = PrimaryDark
-val BlueGrey80 = SecondaryDark
-val Purplish80 = TertiaryDark
-
-val Blue40 = Primary
-val BlueGrey40 = Secondary
-val Purplish40 = Tertiary

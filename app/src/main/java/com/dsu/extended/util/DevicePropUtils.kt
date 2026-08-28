@@ -1,6 +1,7 @@
 package com.dsu.extended.util
 
 import android.os.Build
+import android.os.SystemProperties
 
 class DevicePropUtils {
 
@@ -55,17 +56,9 @@ class DevicePropUtils {
             return getSystemProperty("ro.gsid.image_running") == "1"
         }
 
-        private val systemPropertiesClass by lazy {
-            runCatching { Class.forName("android.os.SystemProperties") }.getOrNull()
-        }
-
-        private val getMethod by lazy {
-            runCatching { systemPropertiesClass?.getMethod("get", String::class.java) }.getOrNull()
-        }
-
         private fun getSystemProperty(key: String): String {
             return try {
-                getMethod?.invoke(null, key)?.toString() ?: ""
+                SystemProperties.get(key)
             } catch (e: Exception) {
                 AppLogger.e("DevicePropUtils", "Failed to get system property", e, "key" to key)
                 ""

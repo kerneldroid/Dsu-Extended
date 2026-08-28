@@ -29,10 +29,9 @@ val ExpressiveShapes = Shapes(
  * Custom shape definitions for specific components
  */
 object DSUShapes {
-    // Main content cards
-    val CardShape = RoundedCornerShape(28.dp)
+    // Main content cards (reduced from 28.dp for a compact look)
+    val CardShape = RoundedCornerShape(18.dp)
 
     // Chips and tags
-    val ChipShape = RoundedCornerShape(12.dp)
-
+    val ChipShape = RoundedCornerShape(10.dp)
 }

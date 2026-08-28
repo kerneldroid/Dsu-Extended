@@ -28,10 +28,11 @@ import com.mikepenz.aboutlibraries.util.withContext
 import java.util.Locale
 import com.dsu.extended.R
 import com.dsu.extended.ui.components.AppScaffold
-import com.dsu.extended.ui.components.DynamicListItem
 import com.dsu.extended.ui.components.PreferenceItem
 import com.dsu.extended.ui.screen.Destinations
 import com.dsu.extended.util.AppLogger
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.foundation.layout.Column
@@ -139,12 +140,9 @@ fun LibrariesScreen(
         ) {
             items(libraries.size) { index ->
                 val library = libraries[index]
-                DynamicListItem(
-                    listLength = libraries.lastIndex,
-                    currentValue = index,
-                ) {
-                    PreferenceItem(
-                        title = library.name,
+                PreferenceItem(
+                    shapes = ListItemDefaults.segmentedShapes(index = index, count = libraries.size),
+                    title = library.name,
                         description = library.licenses,
                         icon = Icons.Rounded.Description,
                         onClick = {
@@ -161,8 +159,7 @@ fun LibrariesScreen(
                                     }
                             }
                         },
-                    )
-                }
+                )
             }
             item { Spacer(modifier = Modifier.padding(2.dp)) }
         }

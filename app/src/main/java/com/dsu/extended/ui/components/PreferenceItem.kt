@@ -1,6 +1,5 @@
 package com.dsu.extended.ui.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,12 +7,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.ListItemShapes
+import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -29,6 +33,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PreferenceItem(
     title: String,
@@ -38,98 +43,89 @@ fun PreferenceItem(
     isChecked: Boolean = false,
     showToggle: Boolean = false,
     isEnabled: Boolean = true,
+    shapes: ListItemShapes = ListItemDefaults.shapes(),
 ) {
     val hapticFeedback = LocalHapticFeedback.current
 
-    val titleStyle =
-        MaterialTheme.typography.bodyMedium
-    val descriptionStyle =
-        MaterialTheme.typography.bodySmall
-    val titleColor = MaterialTheme.colorScheme.onSurface
-    val descriptionColor = MaterialTheme.colorScheme.onSurfaceVariant
-    val iconTint = MaterialTheme.colorScheme.onSurface
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(
-                onClick = {
-                    hapticFeedback.performHapticFeedback(HapticFeedbackType.ContextClick)
-                    onClick(isChecked)
-                },
-                enabled = isEnabled,
-            )
-            .padding(
-                start = 16.dp,
-                end = 16.dp,
-                bottom = 10.dp,
-                top = 10.dp,
-            ),
-    ) {
-        if (icon != null) {
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                modifier = Modifier.padding(end = 14.dp),
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = iconTint,
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .size(22.dp),
-                )
+    SegmentedListItem(
+        onClick = {
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.ContextClick)
+            onClick(isChecked)
+        },
+        shapes = shapes,
+        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+        colors = ListItemDefaults.colors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        ),
+        enabled = isEnabled,
+        leadingContent = icon?.let { currentIcon ->
+            {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                ) {
+                    Icon(
+                        imageVector = currentIcon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier
+                            .padding(6.dp)
+                            .size(18.dp),
+                    )
+                }
             }
-        }
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .align(Alignment.CenterVertically),
-        ) {
-            Text(
-                text = title,
-                style = titleStyle,
-                color = titleColor,
-            )
-            if (description.isNotEmpty()) {
-                Spacer(Modifier.height(1.dp))
+        },
+        content = {
+            // Title + description live in a single slot so the item measures as
+            // one-line and wraps its content instead of reserving the two/three
+            // line token minimum height (which left empty space at the bottom).
+            Column {
                 Text(
-                    text = description,
-                    style = descriptionStyle,
-                    color = descriptionColor,
-                    modifier = Modifier.alpha(0.8F),
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                if (description.isNotEmpty()) {
+                    Spacer(Modifier.height(1.dp))
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.alpha(0.8F),
+                    )
+                }
+            }
+        },
+        trailingContent = if (showToggle) {
+            {
+                Switch(
+                    checked = isChecked,
+                    enabled = isEnabled,
+                    onCheckedChange = {
+                        hapticFeedback.performHapticFeedback(HapticFeedbackType.ContextClick)
+                        onClick(isChecked)
+                    },
+                    thumbContent = {
+                        if (isChecked) {
+                            Icon(
+                                imageVector = Icons.Filled.Check,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                            )
+                        }
+                    },
                 )
             }
-        }
-        if (showToggle) {
-            Spacer(modifier = Modifier.width(8.dp))
-            Switch(
-                checked = isChecked,
-                enabled = isEnabled,
-                onCheckedChange = {
-                    hapticFeedback.performHapticFeedback(HapticFeedbackType.ContextClick)
-                    onClick(isChecked)
-                },
-                thumbContent = {
-                    if (isChecked) {
-                        Icon(
-                            imageVector = Icons.Filled.Check,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(SwitchDefaults.IconSize),
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Filled.Close,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            modifier = Modifier.size(SwitchDefaults.IconSize),
-                        )
-                    }
-                },
-            )
-        }
-    }
+        } else {
+            null
+        },
+    )
 }

@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.dsu.extended.BuildConfig
 import com.dsu.extended.R
 import com.dsu.extended.core.BaseViewModel
@@ -324,7 +325,7 @@ class HomeViewModel @Inject constructor(
             partition = "",
         )
         AppLogger.i(tag, "Forwarding install to privileged service")
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             DsuInstallationHandler(session).startInstallation()
         }
         if (session.isRoot() || OperationModeUtils.isReadLogsPermissionGranted(application)) {
@@ -406,41 +407,57 @@ class HomeViewModel @Inject constructor(
 
     fun onClickDiscardGsiAndStartInstallation() {
         updateInstallationCard { it.copy(installationStep = InstallationStep.PROCESSING) }
+        _uiState.update { it.copy(discardInProgress = true) }
         viewModelScope.launch {
-            PrivilegedProvider.run {
-                remove()
-                forceStopPackage("com.android.dynsystem")
-                startDSUInstallation()
+            // Give the overlay + blur a chance to render before the blocking privileged calls.
+            delay(250)
+            withContext(Dispatchers.IO) {
+                PrivilegedProvider.run {
+                    remove()
+                    forceStopPackage("com.android.dynsystem")
+                }
             }
+            _uiState.update { it.copy(discardInProgress = false, discardFinishing = true) }
+            delay(250)
+            _uiState.update { it.copy(discardFinishing = false) }
+            startDSUInstallation()
         }
     }
 
     fun onClickDiscardGsi() {
         updateInstallationCard { it.copy(installationStep = InstallationStep.PROCESSING) }
+        // Close the sheet first so the overlay is visible, then render it before blocking work.
+        dismissSheet()
+        _uiState.update { it.copy(discardInProgress = true) }
         viewModelScope.launch {
-            PrivilegedProvider.run {
-                remove()
-                forceStopPackage("com.android.dynsystem")
-                dismissSheet()
-                resetInstallationCard()
+            delay(250)
+            withContext(Dispatchers.IO) {
+                PrivilegedProvider.run {
+                    remove()
+                    forceStopPackage("com.android.dynsystem")
+                }
             }
+            resetInstallationCard()
+            _uiState.update { it.copy(discardInProgress = false, discardFinishing = true) }
+            delay(250)
+            _uiState.update { it.copy(discardFinishing = false) }
         }
     }
 
     fun onClickRetryInstallation() {
         updateInstallationCard { it.copy(installationStep = InstallationStep.PROCESSING) }
-        startInstallation()
+        viewModelScope.launch(Dispatchers.IO) { startInstallation() }
     }
 
     fun onClickUnmountSdCardAndRetry() {
         updateInstallationCard { it.copy(installationStep = InstallationStep.PROCESSING) }
         session.preferences.isUnmountSdCard = true
-        startInstallation()
+        viewModelScope.launch(Dispatchers.IO) { startInstallation() }
     }
 
     fun onClickSetSeLinuxPermissive() {
         updateInstallationCard { it.copy(installationStep = InstallationStep.PROCESSING) }
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             Shell.cmd("setenforce 0").exec()
             delay(5000)
             startInstallation()

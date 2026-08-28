@@ -23,11 +23,14 @@ import java.io.FileOutputStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.Locale
 import kotlin.system.exitProcess
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import com.dsu.extended.BuildConfig
 import com.dsu.extended.IPartitionTransferListener
 import com.dsu.extended.IPrivilegedService
+import com.dsu.extended.model.DsuFileEntry
+import com.dsu.extended.model.DsuSystemMetadata
 import com.dsu.extended.util.PartitionResult
 
 class PrivilegedService : IPrivilegedService.Stub() {
@@ -37,6 +40,12 @@ class PrivilegedService : IPrivilegedService.Stub() {
     }
 
     override fun destroy() {
+        runCatching {
+            inspectorMountRoot?.let { mountRoot ->
+                runSystemCmd("/system/bin/umount", mountRoot.absolutePath)
+                mountRoot.delete()
+            }
+        }
         exitProcess(0)
     }
 
@@ -208,7 +217,27 @@ class PrivilegedService : IPrivilegedService.Stub() {
     // REQUIRES MANAGE_DYNAMIC_SYSTEM
     override fun remove(): Boolean {
         requiresDynamicSystem()
-        return DYNAMIC_SYSTEM!!.remove()
+        // Release any inspector-held mount/mapping first, or removal of a mapped image fails.
+        synchronized(inspectorLock) { teardownInspectorMount() }
+        val result = DYNAMIC_SYSTEM!!.remove()
+        // Sweep leftover backing images the metadata-based removal missed so discard is complete.
+        runCatching {
+            val gsi = requiresGsiService()
+            getImagePrefixes().forEach { prefix ->
+                runCatching {
+                    val imageService = gsi.openImageService(prefix)
+                    imageService.allBackingImages.forEach { name ->
+                        runCatching {
+                            if (imageService.isImageMapped(name)) {
+                                imageService.unmapImageDevice(name)
+                            }
+                            imageService.deleteBackingImage(name)
+                        }
+                    }
+                }
+            }
+        }
+        return result
     }
 
     // REQUIRES MANAGE_DYNAMIC_SYSTEM
@@ -321,6 +350,8 @@ class PrivilegedService : IPrivilegedService.Stub() {
         val name = imageName ?: return PartitionResult.INVALID_NAME
         if (!isValidImageName(name) || prefix.isNullOrEmpty()) return PartitionResult.INVALID_NAME
         return runGsiOperation {
+            // A stale inspector mount would make unmap fail; release it first.
+            synchronized(inspectorLock) { teardownInspectorMount() }
             val imageService = requiresGsiService().openImageService(prefix)
             if (!imageService.backingImageExists(name)) {
                 return@runGsiOperation PartitionResult.NOT_FOUND
@@ -413,16 +444,18 @@ class PrivilegedService : IPrivilegedService.Stub() {
         return true
     }
 
-    override fun cancelDsuImageTransfer() {
-        transferCancelled.set(true)
-    }
 
     private fun isTransferRunning(): Boolean {
         val executor = transferThread ?: return false
-        return !executor.isShutdown && !transferDone.get()
+        return !executor.isShutdown && !transferDone.get() || inspectorGate.get()
     }
 
     private var transferDone = AtomicBoolean(true)
+    private var inspectorExecutor: ExecutorService? = null
+    private val inspectorGate = AtomicBoolean(false)
+    private val inspectorLock = Any()
+    private var inspectorMountKey: Pair<String, Pair<Long, Long>>? = null
+    private var inspectorMountRoot: File? = null
 
     private fun beginTransfer(listener: IPartitionTransferListener?) {
         transferCancelled.set(false)
@@ -612,7 +645,282 @@ class PrivilegedService : IPrivilegedService.Stub() {
         return !imageName.isNullOrBlank() && IMAGE_NAME_REGEX.matches(imageName)
     }
 
+
+    // ---- RO-E: read-only GSI partition inspector ----
+
+    private fun inspectorExecutor(): ExecutorService {
+        if (inspectorExecutor == null) {
+            synchronized(this) {
+                if (inspectorExecutor == null) {
+                    inspectorExecutor = Executors.newSingleThreadExecutor { runnable ->
+                        Thread(runnable, "dsu-image-inspector").apply { isDaemon = true }
+                    }
+                }
+            }
+        }
+        return inspectorExecutor!!
+    }
+
+    override fun inspectGsiMetadata(prefix: String?, imageName: String?): DsuSystemMetadata? {
+        if (prefix.isNullOrEmpty() || !isValidImageName(imageName)) return null
+        val safePrefix = prefix ?: return null
+        val safeName = imageName ?: return null
+        return runInspectorTask {
+            withMountedReadOnlyPartition(safePrefix, safeName) { root ->
+                val propFiles = listOf(
+                    File(root, "build.prop"),
+                    File(root, "system/build.prop"),
+                    File(root, "system/etc/build.prop"),
+                    File(root, "etc/build.prop"),
+                )
+                val props = propFiles.firstOrNull { it.isFile }
+                    ?.readLines()
+                    ?.filter { it.contains('=') && !it.trimStart().startsWith("#") }
+                    ?.associate { it.substringBefore('=').trim() to it.substringAfter('=').trim() }
+                    ?: emptyMap()
+                DsuSystemMetadata(
+                    sdkVersion = props["ro.build.version.sdk"]?.toIntOrNull() ?: 0,
+                    androidVersion = props["ro.build.version.release"].orEmpty().ifEmpty { "Unknown" },
+                    cpuAbi = props["ro.product.cpu.abi"].orEmpty().ifEmpty { "Unknown" },
+                    vndkVersion = props["ro.vndk.version"] ?: props["ro.vndk.lite"] ?: "None",
+                    securityPatch = props["ro.build.version.security_patch"].orEmpty().ifEmpty { "Unknown" },
+                    buildFingerprint = props["ro.build.fingerprint"].orEmpty().ifEmpty { "Unknown" },
+                    isTrebleCompliant = props["ro.treble.enabled"]?.toBoolean() ?: true,
+                )
+            }
+        }
+    }
+
+    override fun listPartitionFiles(prefix: String?, imageName: String?, relativePath: String?): List<DsuFileEntry>? {
+        if (prefix.isNullOrEmpty() || !isValidImageName(imageName)) return null
+        val safePrefix = prefix ?: return null
+        val safeName = imageName ?: return null
+        return runInspectorTask {
+            withMountedReadOnlyPartition(safePrefix, safeName) { root ->
+                val targetDir = resolveSafePath(root, relativePath.orEmpty())
+                if (!targetDir.isDirectory) {
+                    return@withMountedReadOnlyPartition emptyList<DsuFileEntry>()
+                }
+                targetDir.listFiles()
+                    ?.sortedWith(compareBy<File> { !it.isDirectory }.thenBy { it.name.lowercase() })
+                    ?.take(MAX_LISTING_ENTRIES)
+                    ?.map { file ->
+                        DsuFileEntry().apply {
+                            this.name = file.name
+                            this.relativePath = file.relativeTo(root).path
+                            this.isDirectory = file.isDirectory
+                            this.sizeBytes = if (file.isFile) file.length() else 0L
+                        }
+                    }
+                    ?: emptyList()
+            }
+        }
+    }
+
+    override fun startExportPartitionFile(
+        prefix: String?,
+        imageName: String?,
+        relativePath: String?,
+        outputFd: ParcelFileDescriptor?,
+        listener: IPartitionTransferListener?,
+    ): Boolean {
+        if (outputFd == null) return false
+        val safePrefix: String = prefix ?: ""
+        val safeImageName: String = imageName ?: ""
+        val safeRelativePath: String = relativePath ?: ""
+        if (safePrefix.isEmpty() || !isValidImageName(safeImageName) || safeRelativePath.isEmpty()) {
+            runCatching { outputFd.close() }
+            return false
+        }
+        if (!beginInspectorOp()) {
+            runCatching { outputFd.close() }
+            return false
+        }
+        beginTransfer(listener)
+        inspectorExecutor().execute {
+            var result = try {
+                runGsiOperation {
+                    withMountedReadOnlyPartition(safePrefix, safeImageName) { root ->
+                        val source = resolveSafePath(root, safeRelativePath)
+                        check(source.isFile) { "not a regular file" }
+                        exportFileToStream(source, outputFd)
+                        PartitionResult.OK
+                    }
+                }
+            } finally {
+                runCatching { outputFd.close() }
+                endInspectorOp()
+            }
+            finishTransfer(result)
+        }
+        return true
+    }
+
+    override fun cancelDsuImageTransfer() {
+        transferCancelled.set(true)
+        inspectorGate.set(false)
+    }
+
+    private fun <T> runInspectorTask(block: () -> T): T? {
+        if (!isRootProcess()) return null
+        if (isTransferRunning() || !inspectorGate.compareAndSet(false, true)) return null
+        return try {
+            runCatching { block() }.getOrElse {
+                Log.e(BuildConfig.APPLICATION_ID, "inspector task failed", it)
+                null
+            }
+        } finally {
+            synchronized(inspectorLock) { teardownInspectorMount() }
+            inspectorGate.set(false)
+        }
+    }
+
+    private fun beginInspectorOp(): Boolean {
+        if (isTransferRunning()) return false
+        return inspectorGate.compareAndSet(false, true)
+    }
+
+    private fun endInspectorOp() {
+        synchronized(inspectorLock) { teardownInspectorMount() }
+        inspectorGate.set(false)
+    }
+
+    private fun isRootProcess(): Boolean = android.os.Process.myUid() == 0
+
+    private fun <T> withMountedReadOnlyPartition(prefix: String, imageName: String, block: (File) -> T): T {
+        val normalized = imageName.removeSuffix(".img").lowercase(Locale.ROOT)
+        require(normalized != "userdata" && normalized != "scratch") {
+            "userdata and scratch partitions are not inspectable"
+        }
+
+        val gsi = requiresGsiService()
+        runCatching {
+            check(!DYNAMIC_SYSTEM!!.isInUse) { "DSU is running" }
+        }.onFailure {
+            teardownInspectorMount()
+            throw IllegalStateException("Cannot inspect images while DSU is running", it)
+        }
+
+        synchronized(inspectorLock) {
+            val freshness = backingFreshness(prefix, imageName)
+            val cachedKey = inspectorMountKey
+            val cachedRoot = inspectorMountRoot
+            if (cachedKey != null && cachedRoot != null &&
+                cachedKey.first == "$prefix/$imageName" && cachedKey.second == freshness
+            ) {
+                return block(cachedRoot)
+            }
+            teardownInspectorMount()
+        }
+
+        if (!isRootProcess()) throw IllegalStateException("mount requires root")
+        val imageService = gsi.openImageService(prefix)
+        if (!imageService.backingImageExists(imageName)) {
+            throw IllegalStateException("missing image")
+        }
+        if (imageService.isImageMapped(imageName)) {
+            imageService.unmapImageDevice(imageName)
+        }
+
+        val hash = sha256Short("$prefix/$imageName")
+        val mountRoot = File(INSPECT_MOUNT_BASE, "${imageName.removeSuffix(".img")}_$hash").apply { mkdirs() }
+        val mappedImage = MappedImage()
+        imageService.mapImageDevice(imageName, PartitionResult.MAP_TIMEOUT_MS, mappedImage)
+        val devicePath = mappedImage.path ?: error("mapped device path is null")
+
+        var mounted = false
+        try {
+            for (fs in listOf("erofs", "ext4")) {
+                if (runSystemCmd("/system/bin/mount", "-t", fs, "-o", "ro,nodev,noatime", devicePath, mountRoot.absolutePath) == 0) {
+                    mounted = true
+                    break
+                }
+            }
+            check(mounted) { "mount failed for $imageName" }
+            synchronized(inspectorLock) {
+                inspectorMountKey = "$prefix/$imageName" to backingFreshness(prefix, imageName)
+                inspectorMountRoot = mountRoot
+            }
+            return block(mountRoot)
+        } catch (e: Exception) {
+            runCatching {
+                if (mounted) runSystemCmd("/system/bin/umount", mountRoot.absolutePath)
+                mountRoot.delete()
+                imageService.unmapImageDevice(imageName)
+            }
+            throw e
+        }
+    }
+
+    private fun backingFreshness(prefix: String, imageName: String): Pair<Long, Long> {
+        val backing = File("/data/gsi", prefix).resolve(imageName)
+        return runCatching { backing.length() to backing.lastModified() }.getOrDefault(0L to 0L)
+    }
+
+    private fun teardownInspectorMount() {
+        val mountRoot = inspectorMountRoot ?: return
+        inspectorMountKey = null
+        inspectorMountRoot = null
+        runCatching { runSystemCmd("/system/bin/umount", mountRoot.absolutePath) }
+        runCatching { mountRoot.delete() }
+    }
+
+    private fun resolveSafePath(root: File, relativePath: String): File {
+        val cleanPath = relativePath.trim('/').replace('\\', '/')
+        val components = cleanPath.split('/').filter { it.isNotEmpty() && it != "." && it != ".." }
+        val target = if (components.isEmpty()) root else File(root, components.joinToString("/"))
+        val rootCanonical = root.canonicalPath
+        val targetCanonical = target.canonicalPath
+        check(targetCanonical == rootCanonical || targetCanonical.startsWith("$rootCanonical/")) {
+            "Path traversal detected"
+        }
+        return target
+    }
+
+    private fun runSystemCmd(vararg cmd: String): Int {
+        return try {
+            val process = ProcessBuilder(*cmd).redirectErrorStream(true).start()
+            process.inputStream.use { it.readBytes() }
+            process.waitFor()
+        } catch (e: Exception) {
+            Log.e(BuildConfig.APPLICATION_ID, "system command failed", e)
+            -1
+        }
+    }
+
+    private fun sha256Short(value: String): String {
+        val digest = java.security.MessageDigest.getInstance("SHA-256").digest(value.toByteArray())
+        return digest.joinToString("") { "%02x".format(it) }.take(16)
+    }
+
+    private fun exportFileToStream(source: File, outputFd: ParcelFileDescriptor) {
+        val total = source.length()
+        val buffer = ByteArray(PartitionResult.COPY_BUFFER_BYTES)
+        var copied = 0L
+        var sinceProgress = 0L
+        FileInputStream(source).use { input ->
+            FileOutputStream(outputFd.fileDescriptor).use { output ->
+                while (copied < total) {
+                    if (transferCancelled.get()) throw IllegalStateException("cancelled")
+                    val read = input.read(buffer)
+                    if (read < 0) break
+                    output.write(buffer, 0, read)
+                    copied += read.toLong()
+                    sinceProgress += read.toLong()
+                    if (sinceProgress >= PartitionResult.BYTES_PER_PROGRESS_STEP) {
+                        sinceProgress = 0L
+                        transferListener?.onProgress(copied, total)
+                    }
+                }
+                output.fd.sync()
+                transferListener?.onProgress(copied, total)
+            }
+        }
+    }
+
     private companion object {
         val IMAGE_NAME_REGEX = Regex("[A-Za-z0-9_.-]+")
+        private val INSPECT_MOUNT_BASE = File("/data/system/dsu_extended_inspect")
+        private const val MAX_LISTING_ENTRIES = 1000
     }
 }

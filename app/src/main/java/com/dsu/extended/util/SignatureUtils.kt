@@ -49,7 +49,7 @@ private fun getSignatures(pm: PackageManager, packageName: String): List<String?
 private fun signatureDigest(sig: Signature): String? {
     val signature = sig.toByteArray()
     return try {
-        val md = MessageDigest.getInstance("SHA1")
+        val md = MessageDigest.getInstance("SHA-256")
         val digest = md.digest(signature)
         return digest.joinToString("") { "%02x".format(it) }
     } catch (e: NoSuchAlgorithmException) {

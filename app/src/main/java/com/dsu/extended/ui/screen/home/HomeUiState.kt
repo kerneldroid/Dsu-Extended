@@ -40,7 +40,6 @@ enum class AdditionalCardState {
     BOOTLOADER_UNLOCKED_WARNING,
 
     // NEW: Device compatibility check
-    DEVICE_COMPATIBILITY_CHECK,
 }
 
 enum class SheetDisplayState {
@@ -52,9 +51,6 @@ enum class SheetDisplayState {
     VIEW_LOGS,
 
     // NEW: Additional sheets
-    DEVICE_INFO,
-    DIAGNOSTIC_REPORT,
-    INSTALLATION_HISTORY,
 }
 
 data class HomeUiState(
@@ -70,6 +66,8 @@ data class HomeUiState(
     val diagnosticReport: DiagnosticReport? = null,
     val showFab: Boolean = true,
     val isDeviceCompatible: Boolean = true,
+    val discardInProgress: Boolean = false,
+    val discardFinishing: Boolean = false,
 ) {
     fun isInstalling(): Boolean {
         return installationCard.installationStep != InstallationStep.NOT_INSTALLING

@@ -65,20 +65,11 @@ fun PrimaryButton(
         }
 
     val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.97f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
-        label = "primaryButtonScale",
-    )
     Button(
         modifier = glowModifier
             .then(modifier)
             .defaultMinSize(minHeight = 46.dp)
-            .scale(scale),
+            ,
         onClick = onClick,
         enabled = isEnabled,
         interactionSource = interactionSource,

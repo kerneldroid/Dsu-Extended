@@ -1,5 +1,28 @@
 package com.dsu.extended.ui.screen.home
 
+import androidx.compose.animation.AnimatedVisibility
+
+import androidx.compose.animation.core.animateFloatAsState
+
+import androidx.compose.animation.core.tween
+
+import androidx.compose.animation.fadeOut
+
+import androidx.compose.animation.slideOutVertically
+
+import androidx.compose.foundation.background
+
+import androidx.compose.foundation.layout.size
+
+import androidx.compose.material3.ContainedLoadingIndicator
+
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+
+import android.os.Build
+
+import com.dsu.extended.util.agslGlassBlur
+
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,6 +33,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.IconButton
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.material3.rememberTopAppBarState
@@ -56,13 +80,20 @@ object HomeLinks {
     const val DSU_DOCS = "https://source.android.com/devices/tech/ota/dynamic-system-updates"
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun Home(
     navigate: (String) -> Unit,
     homeViewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
+    val discardInProgress = uiState.discardInProgress
+    val discardFinishing = uiState.discardFinishing
+    val blurRadius by animateFloatAsState(
+        targetValue = if (discardFinishing) 0f else 24f,
+        animationSpec = tween(250),
+        label = "discardBlur",
+    )
     val activity = LocalContext.current as? MainActivity
     val uriHandler = LocalUriHandler.current
 
@@ -95,9 +126,10 @@ fun Home(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
+                .then(if (discardInProgress) Modifier.agslGlassBlur(blurRadius) else Modifier)
                 .padding(horizontal = 12.dp)
-                .padding(bottom = 110.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+                .padding(bottom = 90.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Box(
                 modifier = Modifier
@@ -132,7 +164,6 @@ fun Home(
                     AdditionalCardState.BOOTLOADER_UNLOCKED_WARNING ->
                         UnlockedBootloaderCard { homeViewModel.onClickBootloaderUnlockedWarning() }
 
-                    AdditionalCardState.DEVICE_COMPATIBILITY_CHECK -> {}
 
                     AdditionalCardState.NONE -> {}
                 }
@@ -214,9 +245,36 @@ fun Home(
                 onDismiss = { homeViewModel.dismissSheet() },
             )
 
-        SheetDisplayState.DEVICE_INFO -> {}
-        SheetDisplayState.DIAGNOSTIC_REPORT -> {}
-        SheetDisplayState.INSTALLATION_HISTORY -> {}
         SheetDisplayState.NONE -> {}
+    }
+
+    if (discardInProgress || discardFinishing) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .then(
+                    if (Build.VERSION.SDK_INT >= 33) {
+                        Modifier
+                    } else {
+                        Modifier.background(Color.Black.copy(alpha = 0.6f))
+                    },
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            AnimatedVisibility(
+                visible = !discardFinishing,
+                exit = slideOutVertically(targetOffsetY = { it / 2 }) + fadeOut(tween(250)),
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    ContainedLoadingIndicator(modifier = Modifier.size(72.dp))
+                    Text(
+                        text = stringResource(id = R.string.discard_in_progress),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White,
+                        modifier = Modifier.padding(top = 16.dp),
+                    )
+                }
+            }
+        }
     }
 }

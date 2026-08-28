@@ -132,4 +132,24 @@
     <string name="partitions_operation_failed">Не удалось выполнить операцию с разделами.</string>
     <string name="partitions_export_failed">Не удалось создать целевой файл.</string>
     <string name="partitions_cancelled">Передача прервана.</string>
+
+    <string name="inspector_title">Инспектор GSI</string>
+    <string name="inspector_description">Метаданные и файлы установленных DSU-образов</string>
+    <string name="inspector_pick_image">Выбрать образ</string>
+    <string name="inspector_metadata_title">Метаданные образа</string>
+    <string name="inspector_meta_android_version">Версия Android</string>
+    <string name="inspector_meta_sdk_version">Версия SDK</string>
+    <string name="inspector_meta_cpu_abi">CPU ABI</string>
+    <string name="inspector_meta_vndk">Версия VNDK</string>
+    <string name="inspector_meta_security_patch">Патч безопасности</string>
+    <string name="inspector_meta_fingerprint">Отпечаток сборки</string>
+    <string name="inspector_meta_treble">Совместимость с Treble</string>
+    <string name="inspector_breadcrumb_root">Корень образа</string>
+    <string name="inspector_folder_label">Папка</string>
+    <string name="inspector_loading_files">Загрузка файлов…</string>
+    <string name="inspector_empty_dir">Эта папка пуста.</string>
+    <string name="inspector_mount_failed">Не удалось подключить или прочитать образ.</string>
+    <string name="inspector_export_failed">Не удалось экспортировать файл.</string>
+    <string name="inspector_privileged_description">Инспекция образов доступна только в режиме Root — образы разделов подключаются только для чтения.</string>
+    <string name="discard_in_progress">Удаление DSU…</string>
 </resources>

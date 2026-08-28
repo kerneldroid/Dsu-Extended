@@ -24,14 +24,14 @@ extensions.configure<ApplicationExtension>("android") {
 
     defaultConfig {
         applicationId = packageName
-        this.versionCode = 19
-        this.versionName = "1.2.3"
+        this.versionCode = 20
+        this.versionName = "1.2.4"
         val updateCheckUrl =
             (project.findProperty("UPDATE_CHECK_URL") as? String)
                 ?: "https://raw.githubusercontent.com/kerneldroid/Dsu-Extended/master/other/updater.json"
         val authorSignDigest =
             (project.findProperty("AUTHOR_SIGN_DIGEST") as? String)
-                ?: "48d04cac11d09be0b180d399d0c747e86e700a8c"
+                ?: "f20611c8371f47af456a81d3682e31955655fec43178bb5d5d6d40778e85878b"
         buildConfigField("String", "UPDATE_CHECK_URL", "\"$updateCheckUrl\"")
         buildConfigField("String", "AUTHOR_SIGN_DIGEST", "\"$authorSignDigest\"")
         minSdk = 29
@@ -134,6 +134,7 @@ dependencies {
     implementation("org.tukaani:xz:1.12")
     implementation("org.apache.commons:commons-compress:1.28.0")
     implementation("com.mikepenz:aboutlibraries-core:11.2.3")
+    implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("dev.rikka.shizuku:api:13.1.5")
     implementation("dev.rikka.shizuku:provider:13.1.5")
     implementation("io.github.iamr0s:Dhizuku-API:2.6.0")

@@ -16,6 +16,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -24,8 +26,6 @@ import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
@@ -50,7 +50,7 @@ enum class CardVariant {
 
 /**
  * Material 3 Expressive Card Box Component
- * Features: larger corner radius, shadows, gradients, animations
+ * Built on the native androidx.compose.material3.Card.
  */
 @Composable
 fun CardBox(
@@ -67,54 +67,24 @@ fun CardBox(
     onCheckedChange: ((Boolean) -> Unit) = {},
     content: @Composable (ColumnScope) -> Unit,
 ) {
-    val backgroundModifier = when (variant) {
-        CardVariant.DEFAULT -> Modifier.background(cardColor)
-
-        CardVariant.ELEVATED ->
-            Modifier
-                .shadow(
-                    elevation = 4.dp,
-                    shape = roundedCornerShape,
-                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                )
-                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp))
-
-        CardVariant.FILLED -> Modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest)
-
-        CardVariant.OUTLINED ->
-            Modifier
-                .background(Color.Transparent)
-                .then(
-                    Modifier.background(
-                        color = MaterialTheme.colorScheme.surfaceContainerLowest,
-                        shape = roundedCornerShape,
-                    ),
-                )
-
-        CardVariant.GRADIENT_PRIMARY -> Modifier.background(
-            brush = Brush.linearGradient(GradientColors.PrimaryGradient),
-        )
-
-        CardVariant.GRADIENT_SECONDARY -> Modifier.background(
-            brush = Brush.linearGradient(GradientColors.SecondaryGradient),
-        )
-
-        CardVariant.GRADIENT_SUCCESS -> Modifier.background(
-            brush = Brush.linearGradient(GradientColors.SuccessGradient),
-        )
-
-        CardVariant.GRADIENT_ERROR -> Modifier.background(
-            brush = Brush.linearGradient(GradientColors.ErrorGradient),
-        )
-
-        CardVariant.GRADIENT_WARNING -> Modifier.background(
-            brush = Brush.linearGradient(GradientColors.WarningGradient),
-        )
+    val isGradient = variant.name.startsWith("GRADIENT")
+    val containerColor = when (variant) {
+        CardVariant.DEFAULT -> cardColor
+        CardVariant.ELEVATED -> MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
+        CardVariant.FILLED -> MaterialTheme.colorScheme.surfaceContainerHighest
+        CardVariant.OUTLINED -> MaterialTheme.colorScheme.surfaceContainerLowest
+        else -> Color.Transparent
+    }
+    val gradientBrush = when (variant) {
+        CardVariant.GRADIENT_PRIMARY -> Brush.linearGradient(GradientColors.PrimaryGradient)
+        CardVariant.GRADIENT_SECONDARY -> Brush.linearGradient(GradientColors.SecondaryGradient)
+        CardVariant.GRADIENT_SUCCESS -> Brush.linearGradient(GradientColors.SuccessGradient)
+        CardVariant.GRADIENT_ERROR -> Brush.linearGradient(GradientColors.ErrorGradient)
+        CardVariant.GRADIENT_WARNING -> Brush.linearGradient(GradientColors.WarningGradient)
+        else -> null
     }
 
-    val isGradient = variant.name.startsWith("GRADIENT")
-
-    Box(
+    Card(
         modifier = modifier
             .fillMaxWidth()
             .animateContentSize(
@@ -122,90 +92,91 @@ fun CardBox(
                     dampingRatio = Spring.DampingRatioLowBouncy,
                     stiffness = Spring.StiffnessMedium,
                 ),
-            )
-            .clip(roundedCornerShape)
-            .then(backgroundModifier)
-            .then(
-                if (addPadding) {
-                    Modifier
-                        .padding(
-                            horizontal = 16.dp,
-                            vertical = 16.dp,
-                        )
-                } else {
-                    Modifier
-                },
-            )
+            ),
+        shape = roundedCornerShape,
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (variant == CardVariant.ELEVATED && elevation == 0.dp) 4.dp else elevation,
+        ),
     ) {
-        Column {
-            if (cardTitle.isNotEmpty()) {
-                if (addToggle) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        CardTitle(
-                            modifier = Modifier.weight(1F),
-                            cardTitle = cardTitle,
-                            color = if (isGradient) Color.White else MaterialTheme.colorScheme.onSurface,
-                        )
-                        Spacer(modifier = Modifier.padding(8.dp))
-                        Switch(
-                            checked = isToggleChecked,
-                            onCheckedChange = onCheckedChange,
-                            enabled = isToggleEnabled,
-                            thumbContent = {
-                                if (isToggleChecked) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Check,
-                                        contentDescription = null,
-                                        tint = if (isGradient) Color.Black.copy(alpha = 0.6f) else MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(SwitchDefaults.IconSize),
+        Box {
+            if (gradientBrush != null) {
+                Box(modifier = Modifier.matchParentSize().background(brush = gradientBrush))
+            }
+            Column(
+                modifier = Modifier.then(
+                    if (addPadding) {
+                        Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
+                    } else {
+                        Modifier
+                    },
+                ),
+            ) {
+                if (cardTitle.isNotEmpty()) {
+                    if (addToggle) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            CardTitle(
+                                modifier = Modifier.weight(1F),
+                                cardTitle = cardTitle,
+                                color = if (isGradient) Color.White else MaterialTheme.colorScheme.onSurface,
+                            )
+                            Spacer(modifier = Modifier.padding(4.dp))
+                            Switch(
+                                checked = isToggleChecked,
+                                onCheckedChange = onCheckedChange,
+                                enabled = isToggleEnabled,
+                                thumbContent = {
+                                    if (isToggleChecked) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Check,
+                                            contentDescription = null,
+                                            tint = if (isGradient) {
+                                                Color.Black.copy(alpha = 0.6f)
+                                            } else {
+                                                MaterialTheme.colorScheme.primary
+                                            },
+                                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                                        )
+                                    } else {
+                                        Icon(
+                                            imageVector = Icons.Filled.Close,
+                                            contentDescription = null,
+                                            tint = if (isGradient) {
+                                                Color.Black.copy(alpha = 0.6f)
+                                            } else {
+                                                MaterialTheme.colorScheme.surfaceContainerHighest
+                                            },
+                                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                                        )
+                                    }
+                                },
+                                colors = if (isGradient) {
+                                    SwitchDefaults.colors(
+                                        checkedThumbColor = Color.White,
+                                        checkedTrackColor = Color.White.copy(alpha = 0.3f),
+                                        uncheckedThumbColor = Color.White.copy(alpha = 0.8f),
+                                        uncheckedTrackColor = Color.White.copy(alpha = 0.2f),
                                     )
                                 } else {
-                                    Icon(
-                                        imageVector = Icons.Filled.Close,
-                                        contentDescription = null,
-                                        tint = if (isGradient) Color.Black.copy(alpha = 0.6f) else MaterialTheme.colorScheme.surfaceContainerHighest,
-                                        modifier = Modifier.size(SwitchDefaults.IconSize),
-                                    )
-                                }
-                            },
-                            colors = if (isGradient) {
-                                SwitchDefaults.colors(
-                                    checkedThumbColor = Color.White,
-                                    checkedTrackColor = Color.White.copy(alpha = 0.3f),
-                                    uncheckedThumbColor = Color.White.copy(alpha = 0.8f),
-                                    uncheckedTrackColor = Color.White.copy(alpha = 0.2f),
-                                )
-                            } else {
-                                SwitchDefaults.colors()
-                            },
+                                    SwitchDefaults.colors()
+                                },
+                            )
+                        }
+                    } else {
+                        CardTitle(
+                            cardTitle = cardTitle,
+                            modifier = Modifier.padding(top = 0.dp, bottom = 6.dp),
+                            color = if (isGradient) Color.White else MaterialTheme.colorScheme.onSurface,
                         )
                     }
-                } else {
-                    CardTitle(
-                        cardTitle = cardTitle,
-                        modifier = Modifier.padding(top = 2.dp, bottom = 10.dp),
-                        color = if (isGradient) Color.White else MaterialTheme.colorScheme.onSurface,
-                    )
                 }
+                content(this)
             }
-            content(this)
         }
     }
 }
-
-/**
- * Elevated card variant for primary content
- */
-
-/**
- * Gradient card for accented content
- */
-
-/**
- * Installation progress card with larger shape
- */

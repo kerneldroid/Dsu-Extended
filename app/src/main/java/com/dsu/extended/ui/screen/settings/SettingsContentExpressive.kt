@@ -4,7 +4,13 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import android.os.Build
+import android.app.WallpaperManager
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,31 +24,53 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.ColorLens
+import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.NewReleases
+import androidx.compose.material.icons.rounded.Contrast
+import androidx.compose.material.icons.rounded.DoneAll
+import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Storage
 import androidx.compose.material.icons.rounded.TextFields
+import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.material3.toShape
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.dsu.extended.R
-import com.dsu.extended.ui.components.DynamicListItem
+import com.dsu.extended.ui.components.MagiskIcon
+import com.dsu.extended.ui.components.ShizukuIcon
+import com.dsu.extended.ui.components.DhizukuIcon
 import com.dsu.extended.ui.components.PreferenceItem
 import com.dsu.extended.ui.theme.AppFontPreset
+import com.dsu.extended.ui.theme.Primary
+import com.dsu.extended.ui.theme.materialColorScheme
 import com.dsu.extended.ui.theme.ColorPaletteStyle
 import com.dsu.extended.ui.theme.ThemeMode
 import com.dsu.extended.util.PreferredPrivilegedMode
@@ -58,15 +86,17 @@ data class SelectionOption(
 fun SettingsContentExpressive(
     uiState: SettingsUiState,
     settingsViewModel: SettingsViewModel,
-    installationItems: List<@Composable () -> Unit>,
-    developerItems: List<@Composable () -> Unit>,
-    checkAllStatusRow: @Composable () -> Unit,
-    aboutItem: @Composable () -> Unit,
+    installationItems: List<@Composable (ListItemShapes) -> Unit>,
+    developerItems: List<@Composable (ListItemShapes) -> Unit>,
+    checkAllStatusRow: @Composable (ListItemShapes) -> Unit,
+    aboutItem: @Composable (ListItemShapes) -> Unit,
+    inspectorItem: @Composable (ListItemShapes) -> Unit,
     onOpenDialog: (DialogSheetState) -> Unit,
 ) {
-    val expressiveOtherItems = buildList<@Composable () -> Unit> {
-        add {
+    val expressiveOtherItems = buildList<@Composable (ListItemShapes) -> Unit> {
+        add { shapes ->
             PreferenceItem(
+                shapes = shapes,
                 title = stringResource(id = R.string.operation_mode),
                 description = settingsViewModel.checkOperationMode() + " · " + when (uiState.preferredPrivilegedMode) {
                     PreferredPrivilegedMode.ALL -> stringResource(id = R.string.operation_mode_preferred_all)
@@ -75,14 +105,15 @@ fun SettingsContentExpressive(
                     PreferredPrivilegedMode.SHIZUKU -> stringResource(id = R.string.operation_mode_preferred_shizuku)
                     PreferredPrivilegedMode.DHIZUKU -> stringResource(id = R.string.operation_mode_preferred_dhizuku)
                 },
-                icon = Icons.Rounded.Settings,
+                icon = Icons.Rounded.Tune,
                 onClick = {
                     onOpenDialog(DialogSheetState.OPERATION_MODE_SELECTOR)
                 },
             )
         }
-        add {
+        add { shapes ->
             PreferenceItem(
+                shapes = shapes,
                 title = stringResource(id = R.string.theme_mode),
                 description =
                 when (uiState.themeMode) {
@@ -91,14 +122,15 @@ fun SettingsContentExpressive(
                     ThemeMode.DARK -> stringResource(id = R.string.theme_mode_dark)
                     ThemeMode.OLED -> stringResource(id = R.string.theme_mode_oled)
                 },
-                icon = Icons.Rounded.Settings,
+                icon = Icons.Rounded.DarkMode,
                 onClick = {
                     onOpenDialog(DialogSheetState.THEME_MODE_SELECTOR)
                 },
             )
         }
-        add {
+        add { shapes ->
             PreferenceItem(
+                shapes = shapes,
                 title = stringResource(id = R.string.app_font_title),
                 description = appFontPresetLabel(uiState.appFontPreset),
                 icon = Icons.Rounded.TextFields,
@@ -107,8 +139,9 @@ fun SettingsContentExpressive(
                 },
             )
         }
-        add {
+        add { shapes ->
             PreferenceItem(
+                shapes = shapes,
                 title = stringResource(id = R.string.material_color_style),
                 description =
                 when (uiState.colorPaletteStyle) {
@@ -123,15 +156,16 @@ fun SettingsContentExpressive(
                 },
             )
         }
-        add {
+        add { shapes ->
             PreferenceItem(
+                shapes = shapes,
                 title = stringResource(id = R.string.dynamic_color_title),
                 description = if (uiState.useDynamicColor) {
                     stringResource(id = R.string.dynamic_color_description_on)
                 } else {
                     stringResource(id = R.string.dynamic_color_description_off)
                 },
-                icon = Icons.Rounded.ColorLens,
+                icon = Icons.Rounded.AutoAwesome,
                 showToggle = true,
                 isEnabled = true,
                 isChecked = uiState.useDynamicColor,
@@ -140,6 +174,7 @@ fun SettingsContentExpressive(
         }
         add(checkAllStatusRow)
         add(aboutItem)
+        add(inspectorItem)
     }
 
     ExpressiveSettingsSection(
@@ -168,21 +203,20 @@ internal fun appFontPresetLabel(preset: AppFontPreset): String {
 }
 
 @Composable
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 internal fun ExpressiveSettingsSection(
     title: String,
-    items: List<@Composable () -> Unit>,
+    items: List<@Composable (ListItemShapes) -> Unit>,
 ) {
     Text(
         text = title,
         style = MaterialTheme.typography.titleMedium,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 4.dp, top = 10.dp, bottom = 8.dp),
+        modifier = Modifier.padding(start = 4.dp, top = 6.dp, bottom = 4.dp),
     )
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)) {
         items.forEachIndexed { index, item ->
-            DynamicListItem(listLength = items.lastIndex, currentValue = index) {
-                item()
-            }
+            item(ListItemDefaults.segmentedShapes(index = index, count = items.size))
         }
     }
 }
@@ -200,25 +234,25 @@ internal fun OperationModeSelectorExpressiveMenu(
     val options = listOf(
         SelectionOption(
             key = PreferredPrivilegedMode.ALL.name,
-            icon = Icons.Rounded.Settings,
+            icon = Icons.Rounded.DoneAll,
             title = stringResource(id = R.string.operation_mode_force_all),
             description = stringResource(id = R.string.operation_mode_force_all_description),
         ),
         SelectionOption(
             key = PreferredPrivilegedMode.ROOT.name,
-            icon = Icons.Rounded.WarningAmber,
+            icon = MagiskIcon,
             title = stringResource(id = R.string.operation_mode_force_root),
             description = stringResource(id = R.string.operation_mode_force_root_description),
         ),
         SelectionOption(
             key = PreferredPrivilegedMode.SHIZUKU.name,
-            icon = Icons.Rounded.NewReleases,
+            icon = ShizukuIcon,
             title = stringResource(id = R.string.operation_mode_force_shizuku),
             description = stringResource(id = R.string.operation_mode_force_shizuku_description),
         ),
         SelectionOption(
             key = PreferredPrivilegedMode.DHIZUKU.name,
-            icon = Icons.Rounded.Palette,
+            icon = DhizukuIcon,
             title = stringResource(id = R.string.operation_mode_force_dhizuku),
             description = stringResource(id = R.string.operation_mode_force_dhizuku_description),
         ),
@@ -248,17 +282,17 @@ internal fun ThemeModeSelectorExpressiveMenu(
         ),
         SelectionOption(
             key = ThemeMode.LIGHT.name,
-            icon = Icons.Rounded.NewReleases,
+            icon = Icons.Rounded.LightMode,
             title = stringResource(id = R.string.theme_mode_light),
         ),
         SelectionOption(
             key = ThemeMode.DARK.name,
-            icon = Icons.Rounded.WarningAmber,
+            icon = Icons.Rounded.DarkMode,
             title = stringResource(id = R.string.theme_mode_dark),
         ),
         SelectionOption(
             key = ThemeMode.OLED.name,
-            icon = Icons.Rounded.Storage,
+            icon = Icons.Rounded.Contrast,
             title = stringResource(id = R.string.theme_mode_oled),
         ),
     )
@@ -310,40 +344,179 @@ internal fun FontPresetSelectorExpressiveMenu(
 @Composable
 internal fun ColorStyleSelectorExpressiveMenu(
     selectedStyle: ColorPaletteStyle,
+    useDynamicColor: Boolean,
     onDismiss: () -> Unit,
     onSelectStyle: (ColorPaletteStyle) -> Unit,
 ) {
-    val options = listOf(
-        SelectionOption(
-            key = ColorPaletteStyle.TONAL_SPOT.name,
-            icon = Icons.Rounded.Settings,
-            title = stringResource(id = R.string.material_color_style_tonal_spot),
-        ),
-        SelectionOption(
-            key = ColorPaletteStyle.EXPRESSIVE.name,
-            icon = Icons.Rounded.NewReleases,
-            title = stringResource(id = R.string.material_color_style_expressive),
-        ),
-        SelectionOption(
-            key = ColorPaletteStyle.VIBRANT.name,
-            icon = Icons.Rounded.WarningAmber,
-            title = stringResource(id = R.string.material_color_style_vibrant),
-        ),
-        SelectionOption(
-            key = ColorPaletteStyle.MONOCHROME.name,
-            icon = Icons.Rounded.Storage,
-            title = stringResource(id = R.string.material_color_style_monochrome),
-        ),
+    val styles = listOf(
+        ColorPaletteStyle.TONAL_SPOT to stringResource(id = R.string.material_color_style_tonal_spot),
+        ColorPaletteStyle.EXPRESSIVE to stringResource(id = R.string.material_color_style_expressive),
+        ColorPaletteStyle.VIBRANT to stringResource(id = R.string.material_color_style_vibrant),
+        ColorPaletteStyle.MONOCHROME to stringResource(id = R.string.material_color_style_monochrome),
     )
-    ExpressiveSelectionDialog(
-        title = stringResource(id = R.string.material_color_style),
-        options = options,
-        selectedKey = selectedStyle.name,
-        onDismiss = onDismiss,
-        onSelect = { selected ->
-            onSelectStyle(ColorPaletteStyle.valueOf(selected))
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = stringResource(id = R.string.material_color_style),
+                style = MaterialTheme.typography.headlineSmall,
+            )
         },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 360.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                styles.forEach { (style, title) ->
+                    ColorStyleSelectorRow(
+                        style = style,
+                        useDynamicColor = useDynamicColor,
+                        title = title,
+                        selected = selectedStyle == style,
+                        onClick = {
+                            onSelectStyle(style)
+                            onDismiss()
+                        },
+                    )
+                }
+            }
+        },
+        confirmButton = {},
     )
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun ColorStylePreview(
+    style: ColorPaletteStyle,
+    useDynamicColor: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val isDarkTheme = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+
+    // Resolve the seed the same way the app theme does: wallpaper colors when
+    // dynamic color is enabled (12+), the app base color otherwise.
+    val wallpaperSeed = remember(context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            runCatching {
+                val wallpaperColors =
+                    WallpaperManager.getInstance(context).getWallpaperColors(WallpaperManager.FLAG_SYSTEM)
+                val seed =
+                    wallpaperColors?.primaryColor ?: wallpaperColors?.secondaryColor ?: wallpaperColors?.tertiaryColor
+                seed?.toArgb()?.let { Color(it) }
+            }.getOrNull()
+        } else {
+            null
+        }
+    }
+    val dynamicColorActive = useDynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    val systemDynamicScheme =
+        if (dynamicColorActive) {
+            if (isDarkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        } else {
+            null
+        }
+
+    // Generate the palette per style so previews differ BEFORE applying. With
+    // dynamic color on, TONAL_SPOT shows the actual system dynamic scheme, exactly
+    // like DsuTheme resolves it.
+    val quadrants = remember(style, wallpaperSeed, isDarkTheme, dynamicColorActive, systemDynamicScheme) {
+        if (dynamicColorActive && style == ColorPaletteStyle.TONAL_SPOT && systemDynamicScheme != null) {
+            listOf(
+                systemDynamicScheme.primary,
+                systemDynamicScheme.secondary,
+                systemDynamicScheme.tertiary,
+                systemDynamicScheme.primaryContainer,
+            )
+        } else {
+            val scheme = materialColorScheme(
+                seedColor = wallpaperSeed ?: Primary,
+                useDarkTheme = isDarkTheme,
+                colorPaletteStyle = style,
+            )
+            listOf(
+                scheme.primary,
+                scheme.secondary,
+                scheme.tertiary,
+                scheme.primaryContainer,
+            )
+        }
+    }
+
+    val previewShape = when (style) {
+        ColorPaletteStyle.TONAL_SPOT -> MaterialShapes.Circle.toShape()
+        ColorPaletteStyle.EXPRESSIVE -> MaterialShapes.Cookie12Sided.toShape()
+        ColorPaletteStyle.VIBRANT -> MaterialShapes.Clover8Leaf.toShape()
+        ColorPaletteStyle.MONOCHROME -> MaterialShapes.Square.toShape()
+    }
+
+    Box(
+        modifier = modifier
+            .size(36.dp)
+            .clip(previewShape),
+    ) {
+        Row(modifier = Modifier.fillMaxSize()) {
+            quadrants.forEach { color ->
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .background(color),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ColorStyleSelectorRow(
+    style: ColorPaletteStyle,
+    useDynamicColor: Boolean,
+    title: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    val containerColor by animateColorAsState(
+        targetValue = if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+        animationSpec = spring(),
+        label = "colorStyleRowContainer",
+    )
+    val titleColor by animateColorAsState(
+        targetValue = if (selected) {
+            MaterialTheme.colorScheme.onSecondaryContainer
+        } else {
+            MaterialTheme.colorScheme.onSurface
+        },
+        animationSpec = spring(),
+        label = "colorStyleRowTitle",
+    )
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = containerColor,
+                shape = RoundedCornerShape(16.dp),
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 18.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        ColorStylePreview(style = style, useDynamicColor = useDynamicColor)
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            color = titleColor,
+            modifier = Modifier.weight(1f),
+        )
+        RadioButton(selected = selected, onClick = onClick)
+    }
 }
 
 @Composable

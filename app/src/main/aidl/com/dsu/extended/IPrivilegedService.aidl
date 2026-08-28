@@ -3,6 +3,8 @@ package com.dsu.extended;
 import android.gsi.GsiProgress;
 import android.os.storage.VolumeInfo;
 import com.dsu.extended.IPartitionTransferListener;
+import com.dsu.extended.model.DsuFileEntry;
+import com.dsu.extended.model.DsuSystemMetadata;
 
 interface IPrivilegedService {
     void exit() = 1;
@@ -49,4 +51,10 @@ interface IPrivilegedService {
     boolean startExportDsuImage(String prefix, String imageName, in ParcelFileDescriptor imageFd,
             @nullable IPartitionTransferListener listener) = 4020;
     void cancelDsuImageTransfer() = 4021;
+
+    // GSI partition inspector (RO-E) — read-only, root-only
+    @nullable DsuSystemMetadata inspectGsiMetadata(String prefix, String imageName) = 4022;
+    @nullable List<DsuFileEntry> listPartitionFiles(String prefix, String imageName, String relativePath) = 4023;
+    boolean startExportPartitionFile(String prefix, String imageName, String relativePath,
+            in ParcelFileDescriptor outputFd, @nullable IPartitionTransferListener listener) = 4024;
 }

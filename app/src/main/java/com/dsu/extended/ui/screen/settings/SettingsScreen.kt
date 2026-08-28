@@ -6,6 +6,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.DoneAll
+import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
@@ -21,8 +24,11 @@ import com.dsu.extended.R
 import com.dsu.extended.ui.components.AppScaffold
 import com.dsu.extended.ui.components.PreferenceItem
 import com.dsu.extended.ui.screen.Destinations
+import com.dsu.extended.ui.screen.inspector.GsiInspectorScreen
+import com.dsu.extended.ui.screen.inspector.GsiInspectorScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.foundation.layout.Column
@@ -61,9 +67,10 @@ fun Settings(
                 .navigationBarsPadding()
                 .padding(bottom = 24.dp),
         ) {
-        val installationItems = buildList<@Composable () -> Unit> {
-            add {
+        val installationItems = buildList<@Composable (ListItemShapes) -> Unit> {
+            add { shapes ->
                 PreferenceItem(
+                    shapes = shapes,
                     title = stringResource(id = R.string.builtin_installer),
                     description = stringResource(id = R.string.builtin_installer_description),
                     showToggle = true,
@@ -71,8 +78,9 @@ fun Settings(
                     onClick = { settingsViewModel.setUseBuiltInInstaller(!it) },
                 )
             }
-            add {
+            add { shapes ->
                 PreferenceItem(
+                    shapes = shapes,
                     title = stringResource(id = R.string.unmount_sd_title),
                     description = stringResource(id = R.string.unmount_sd_description),
                     showToggle = true,
@@ -80,8 +88,9 @@ fun Settings(
                     onClick = { settingsViewModel.setUnmountSdCard(!it) },
                 )
             }
-            add {
+            add { shapes ->
                 PreferenceItem(
+                    shapes = shapes,
                     title = stringResource(id = R.string.storage_check_title),
                     description = stringResource(id = R.string.storage_check_description),
                     showToggle = true,
@@ -91,10 +100,11 @@ fun Settings(
             }
         }
 
-        val developerItems = buildList<@Composable () -> Unit> {
+        val developerItems = buildList<@Composable (ListItemShapes) -> Unit> {
             if (uiState.isDeveloperOptionsEnabled) {
-                add {
+                add { shapes ->
                     PreferenceItem(
+                        shapes = shapes,
                         title = stringResource(id = R.string.full_logcat_logging_title),
                         description = stringResource(id = R.string.full_logcat_logging_description),
                         showToggle = true,
@@ -102,8 +112,9 @@ fun Settings(
                         onClick = { settingsViewModel.setFullLogcatLogging(!it) },
                     )
                 }
-                add {
+                add { shapes ->
                     PreferenceItem(
+                        shapes = shapes,
                         title = stringResource(id = R.string.keep_screen_on),
                         showToggle = true,
                         isChecked = uiState.keepScreenOn,
@@ -118,20 +129,31 @@ fun Settings(
             settingsViewModel = settingsViewModel,
             installationItems = installationItems,
             developerItems = developerItems,
-            checkAllStatusRow = {
+            checkAllStatusRow = { shapes ->
                 PreferenceItem(
+                    shapes = shapes,
                     title = stringResource(id = R.string.check_all_title),
                     description = settingsViewModel.checkAllStatusSummary(),
-                    icon = Icons.Rounded.Info,
+                    icon = Icons.Rounded.DoneAll,
                     onClick = { settingsViewModel.runCheckAll() },
                 )
             },
-            aboutItem = {
+            aboutItem = { shapes ->
                 PreferenceItem(
+                    shapes = shapes,
                     title = stringResource(id = R.string.about),
                     description = stringResource(id = R.string.about_description),
                     icon = Icons.Rounded.Info,
                     onClick = { navigate(Destinations.About) },
+                )
+            },
+            inspectorItem = { shapes ->
+                PreferenceItem(
+                    shapes = shapes,
+                    title = stringResource(id = R.string.inspector_title),
+                    description = stringResource(id = R.string.inspector_description),
+                    icon = Icons.Rounded.FolderOpen,
+                    onClick = { navigate(Destinations.GsiInspector) },
                 )
             },
             onOpenDialog = { settingsViewModel.openDialog(it) },
@@ -169,6 +191,7 @@ fun Settings(
             DialogSheetState.COLOR_STYLE_SELECTOR ->
                 ColorStyleSelectorExpressiveMenu(
                     selectedStyle = uiState.colorPaletteStyle,
+                    useDynamicColor = uiState.useDynamicColor,
                     onDismiss = { settingsViewModel.dismissDialog() },
                     onSelectStyle = { settingsViewModel.setColorPaletteStyle(it) },
                 )
