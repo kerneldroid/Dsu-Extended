@@ -2,9 +2,9 @@
 
 Modern, feature-rich DSU (Dynamic System Update) installer for Android. Designed for ease of use and maximum compatibility.
 
-| Preview 1 | Preview 2 |
-| :---: | :---: |
-| ![Preview 1](docs/images/preview_1.jpg) | ![Preview 2](docs/images/preview_2.jpg) |
+| Install | Partitions | Inspector | Logs |
+| :---: | :---: | :---: | :---: |
+| ![Install](docs/images/install.webp) | ![Partitions](docs/images/partitions.webp) | ![Inspector](docs/images/inspector.webp) | ![Logs](docs/images/logs.webp) |
 
 ## Features
 - **Root/Shizuku/Dhizuku Support:** Works across various privilege levels.
