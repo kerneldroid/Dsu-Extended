@@ -20,6 +20,7 @@ import com.dsu.extended.model.Session
 import com.dsu.extended.preferences.AppPrefs
 import com.dsu.extended.ui.theme.AppFontPreset
 import com.dsu.extended.ui.theme.ColorPaletteStyle
+import com.dsu.extended.ui.theme.ColorSpecVersion
 import com.dsu.extended.ui.theme.ThemeMode
 import com.dsu.extended.util.OperationMode
 import com.dsu.extended.util.OperationModeUtils
@@ -57,6 +58,7 @@ class SettingsViewModel @Inject constructor(
             val appFontPreset = AppFontPreset.fromPreference(readStringPref(AppPrefs.APP_FONT_PRESET))
             val themeMode = ThemeMode.fromPreference(readStringPref(AppPrefs.THEME_MODE))
             val colorStyle = ColorPaletteStyle.fromPreference(readStringPref(AppPrefs.MATERIAL_COLOR_STYLE))
+            val colorSpec = ColorSpecVersion.fromPreference(readStringPref(AppPrefs.MATERIAL_COLOR_SPEC))
             val dynamicColor = DataStoreUtils.readBoolPref(dataStore, AppPrefs.USE_DYNAMIC_COLOR, false)
             val hasRoot = probeHasRoot()
             val hasShizuku = OperationModeUtils.isShizukuPermissionGranted(application)
@@ -76,6 +78,7 @@ class SettingsViewModel @Inject constructor(
                     themeMode = themeMode,
                     useDynamicColor = dynamicColor,
                     colorPaletteStyle = colorStyle,
+                    colorSpecVersion = colorSpec,
                     isDeveloperOptionsEnabled = readBoolPref(AppPrefs.DEVELOPER_OPTIONS)
                 )
             }
@@ -168,6 +171,13 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             updateStringPref(AppPrefs.MATERIAL_COLOR_STYLE, style.value)
             _uiState.update { it.copy(colorPaletteStyle = style) }
+        }
+    }
+
+    fun setColorSpecVersion(specVersion: ColorSpecVersion) {
+        viewModelScope.launch {
+            updateStringPref(AppPrefs.MATERIAL_COLOR_SPEC, specVersion.value)
+            _uiState.update { it.copy(colorSpecVersion = specVersion) }
         }
     }
 

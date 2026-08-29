@@ -191,9 +191,11 @@ fun Settings(
             DialogSheetState.COLOR_STYLE_SELECTOR ->
                 ColorStyleSelectorExpressiveMenu(
                     selectedStyle = uiState.colorPaletteStyle,
+                    selectedSpec = uiState.colorSpecVersion,
                     useDynamicColor = uiState.useDynamicColor,
                     onDismiss = { settingsViewModel.dismissDialog() },
                     onSelectStyle = { settingsViewModel.setColorPaletteStyle(it) },
+                    onSelectSpec = { settingsViewModel.setColorSpecVersion(it) },
                 )
 
             else -> {}

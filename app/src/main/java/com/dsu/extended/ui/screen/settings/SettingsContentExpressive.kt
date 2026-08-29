@@ -38,6 +38,7 @@ import androidx.compose.material.icons.rounded.TextFields
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.Icon
@@ -48,6 +49,7 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -71,6 +73,7 @@ import com.dsu.extended.ui.components.PreferenceItem
 import com.dsu.extended.ui.theme.AppFontPreset
 import com.dsu.extended.ui.theme.Primary
 import com.dsu.extended.ui.theme.materialColorScheme
+import com.dsu.extended.ui.theme.ColorSpecVersion
 import com.dsu.extended.ui.theme.ColorPaletteStyle
 import com.dsu.extended.ui.theme.ThemeMode
 import com.dsu.extended.util.PreferredPrivilegedMode
@@ -146,9 +149,14 @@ fun SettingsContentExpressive(
                 description =
                 when (uiState.colorPaletteStyle) {
                     ColorPaletteStyle.TONAL_SPOT -> stringResource(id = R.string.material_color_style_tonal_spot)
-                    ColorPaletteStyle.EXPRESSIVE -> stringResource(id = R.string.material_color_style_expressive)
+                    ColorPaletteStyle.NEUTRAL -> stringResource(id = R.string.material_color_style_neutral)
                     ColorPaletteStyle.VIBRANT -> stringResource(id = R.string.material_color_style_vibrant)
+                    ColorPaletteStyle.EXPRESSIVE -> stringResource(id = R.string.material_color_style_expressive)
+                    ColorPaletteStyle.RAINBOW -> stringResource(id = R.string.material_color_style_rainbow)
+                    ColorPaletteStyle.FRUIT_SALAD -> stringResource(id = R.string.material_color_style_fruit_salad)
                     ColorPaletteStyle.MONOCHROME -> stringResource(id = R.string.material_color_style_monochrome)
+                    ColorPaletteStyle.FIDELITY -> stringResource(id = R.string.material_color_style_fidelity)
+                    ColorPaletteStyle.CONTENT -> stringResource(id = R.string.material_color_style_content)
                 },
                 icon = Icons.Rounded.Palette,
                 onClick = {
@@ -341,18 +349,26 @@ internal fun FontPresetSelectorExpressiveMenu(
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun ColorStyleSelectorExpressiveMenu(
     selectedStyle: ColorPaletteStyle,
+    selectedSpec: ColorSpecVersion,
     useDynamicColor: Boolean,
     onDismiss: () -> Unit,
     onSelectStyle: (ColorPaletteStyle) -> Unit,
+    onSelectSpec: (ColorSpecVersion) -> Unit,
 ) {
     val styles = listOf(
         ColorPaletteStyle.TONAL_SPOT to stringResource(id = R.string.material_color_style_tonal_spot),
-        ColorPaletteStyle.EXPRESSIVE to stringResource(id = R.string.material_color_style_expressive),
+        ColorPaletteStyle.NEUTRAL to stringResource(id = R.string.material_color_style_neutral),
         ColorPaletteStyle.VIBRANT to stringResource(id = R.string.material_color_style_vibrant),
+        ColorPaletteStyle.EXPRESSIVE to stringResource(id = R.string.material_color_style_expressive),
+        ColorPaletteStyle.RAINBOW to stringResource(id = R.string.material_color_style_rainbow),
+        ColorPaletteStyle.FRUIT_SALAD to stringResource(id = R.string.material_color_style_fruit_salad),
         ColorPaletteStyle.MONOCHROME to stringResource(id = R.string.material_color_style_monochrome),
+        ColorPaletteStyle.FIDELITY to stringResource(id = R.string.material_color_style_fidelity),
+        ColorPaletteStyle.CONTENT to stringResource(id = R.string.material_color_style_content),
     )
 
     AlertDialog(
@@ -367,14 +383,19 @@ internal fun ColorStyleSelectorExpressiveMenu(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 360.dp)
+                    .heightIn(max = 480.dp)
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                ColorSpecSelector(
+                    selectedSpec = selectedSpec,
+                    onSelectSpec = onSelectSpec,
+                )
                 styles.forEach { (style, title) ->
                     ColorStyleSelectorRow(
                         style = style,
                         useDynamicColor = useDynamicColor,
+                        colorSpecVersion = selectedSpec,
                         title = title,
                         selected = selectedStyle == style,
                         onClick = {
@@ -394,6 +415,7 @@ internal fun ColorStyleSelectorExpressiveMenu(
 private fun ColorStylePreview(
     style: ColorPaletteStyle,
     useDynamicColor: Boolean,
+    colorSpecVersion: ColorSpecVersion,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -425,7 +447,7 @@ private fun ColorStylePreview(
     // Generate the palette per style so previews differ BEFORE applying. With
     // dynamic color on, TONAL_SPOT shows the actual system dynamic scheme, exactly
     // like DsuTheme resolves it.
-    val quadrants = remember(style, wallpaperSeed, isDarkTheme, dynamicColorActive, systemDynamicScheme) {
+    val quadrants = remember(style, wallpaperSeed, isDarkTheme, dynamicColorActive, systemDynamicScheme, colorSpecVersion) {
         if (dynamicColorActive && style == ColorPaletteStyle.TONAL_SPOT && systemDynamicScheme != null) {
             listOf(
                 systemDynamicScheme.primary,
@@ -438,6 +460,7 @@ private fun ColorStylePreview(
                 seedColor = wallpaperSeed ?: Primary,
                 useDarkTheme = isDarkTheme,
                 colorPaletteStyle = style,
+                specVersion = colorSpecVersion,
             )
             listOf(
                 scheme.primary,
@@ -450,9 +473,14 @@ private fun ColorStylePreview(
 
     val previewShape = when (style) {
         ColorPaletteStyle.TONAL_SPOT -> MaterialShapes.Circle.toShape()
-        ColorPaletteStyle.EXPRESSIVE -> MaterialShapes.Cookie12Sided.toShape()
+        ColorPaletteStyle.NEUTRAL -> MaterialShapes.Oval.toShape()
         ColorPaletteStyle.VIBRANT -> MaterialShapes.Clover8Leaf.toShape()
+        ColorPaletteStyle.EXPRESSIVE -> MaterialShapes.Cookie12Sided.toShape()
+        ColorPaletteStyle.RAINBOW -> MaterialShapes.Fan.toShape()
+        ColorPaletteStyle.FRUIT_SALAD -> MaterialShapes.Cookie6Sided.toShape()
         ColorPaletteStyle.MONOCHROME -> MaterialShapes.Square.toShape()
+        ColorPaletteStyle.FIDELITY -> MaterialShapes.Diamond.toShape()
+        ColorPaletteStyle.CONTENT -> MaterialShapes.Pill.toShape()
     }
 
     Box(
@@ -477,6 +505,7 @@ private fun ColorStylePreview(
 private fun ColorStyleSelectorRow(
     style: ColorPaletteStyle,
     useDynamicColor: Boolean,
+    colorSpecVersion: ColorSpecVersion,
     title: String,
     selected: Boolean,
     onClick: () -> Unit,
@@ -508,7 +537,7 @@ private fun ColorStyleSelectorRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        ColorStylePreview(style = style, useDynamicColor = useDynamicColor)
+        ColorStylePreview(style = style, useDynamicColor = useDynamicColor, colorSpecVersion = colorSpecVersion)
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,
@@ -640,5 +669,37 @@ private fun ExpressiveSelectionRow(
             }
         }
         RadioButton(selected = selected, onClick = onClick)
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun ColorSpecSelector(
+    selectedSpec: ColorSpecVersion,
+    onSelectSpec: (ColorSpecVersion) -> Unit,
+) {
+    val options = listOf(
+        ColorSpecVersion.SPEC_2021 to stringResource(id = R.string.material_color_spec_2021),
+        ColorSpecVersion.SPEC_2025 to stringResource(id = R.string.material_color_spec_2025),
+    )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+    ) {
+        options.forEachIndexed { index, (spec, label) ->
+            ToggleButton(
+                checked = selectedSpec == spec,
+                onCheckedChange = { onSelectSpec(spec) },
+                shapes = when (index) {
+                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                    options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                },
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(text = label, style = MaterialTheme.typography.labelLarge)
+            }
+        }
     }
 }

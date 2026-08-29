@@ -24,16 +24,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import com.materialkolor.PaletteStyle
+import com.materialkolor.dynamicColorScheme
+import com.materialkolor.dynamiccolor.ColorSpec
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import com.google.android.material.color.utilities.Hct
-import com.google.android.material.color.utilities.DynamicScheme
-import com.google.android.material.color.utilities.MaterialDynamicColors
-import com.google.android.material.color.utilities.SchemeExpressive
-import com.google.android.material.color.utilities.SchemeMonochrome
-import com.google.android.material.color.utilities.SchemeTonalSpot
-import com.google.android.material.color.utilities.SchemeVibrant
 
 enum class ThemeMode {
     SYSTEM,
@@ -53,16 +49,39 @@ enum class ThemeMode {
 
 enum class ColorPaletteStyle {
     TONAL_SPOT,
-    EXPRESSIVE,
+    NEUTRAL,
     VIBRANT,
-    MONOCHROME;
+    EXPRESSIVE,
+    RAINBOW,
+    FRUIT_SALAD,
+    MONOCHROME,
+    FIDELITY,
+    CONTENT;
+
+    val value: String
+        get() = name.lowercase()
+
+    /** Styles the Material 3 2025 color spec supports; others fall back to 2021. */
+    val supportsSpec2025: Boolean
+        get() = this == TONAL_SPOT || this == NEUTRAL || this == VIBRANT || this == EXPRESSIVE
+
+    companion object {
+        fun fromPreference(value: String): ColorPaletteStyle {
+            return entries.firstOrNull { it.value == value } ?: TONAL_SPOT
+        }
+    }
+}
+
+enum class ColorSpecVersion {
+    SPEC_2021,
+    SPEC_2025;
 
     val value: String
         get() = name.lowercase()
 
     companion object {
-        fun fromPreference(value: String): ColorPaletteStyle {
-            return entries.firstOrNull { it.value == value } ?: TONAL_SPOT
+        fun fromPreference(value: String): ColorSpecVersion {
+            return entries.firstOrNull { it.value == value } ?: SPEC_2021
         }
     }
 }
@@ -94,67 +113,35 @@ internal fun materialColorScheme(
     seedColor: Color,
     useDarkTheme: Boolean,
     colorPaletteStyle: ColorPaletteStyle,
+    colorSpecVersion: ColorSpecVersion = ColorSpecVersion.SPEC_2021,
+    specVersion: ColorSpecVersion = ColorSpecVersion.SPEC_2021,
 ): ColorScheme {
-    val hct = Hct.fromInt(seedColor.toArgb())
-    val scheme =
-        when (colorPaletteStyle) {
-            ColorPaletteStyle.TONAL_SPOT -> SchemeTonalSpot(hct, useDarkTheme, 0.0)
-            ColorPaletteStyle.EXPRESSIVE -> SchemeExpressive(hct, useDarkTheme, 0.0)
-            ColorPaletteStyle.VIBRANT -> SchemeVibrant(hct, useDarkTheme, 0.0)
-            ColorPaletteStyle.MONOCHROME -> SchemeMonochrome(hct, useDarkTheme, 0.0)
-        }
-    return dynamicSchemeToColorScheme(scheme, useDarkTheme)
-}
-
-private fun dynamicSchemeToColorScheme(
-    scheme: DynamicScheme,
-    useDarkTheme: Boolean,
-): ColorScheme {
-    val dynamic = MaterialDynamicColors()
-
-    fun role(color: com.google.android.material.color.utilities.DynamicColor): Color {
-        return Color(color.getArgb(scheme))
+    val style = when (colorPaletteStyle) {
+        ColorPaletteStyle.TONAL_SPOT -> PaletteStyle.TonalSpot
+        ColorPaletteStyle.NEUTRAL -> PaletteStyle.Neutral
+        ColorPaletteStyle.VIBRANT -> PaletteStyle.Vibrant
+        ColorPaletteStyle.EXPRESSIVE -> PaletteStyle.Expressive
+        ColorPaletteStyle.RAINBOW -> PaletteStyle.Rainbow
+        ColorPaletteStyle.FRUIT_SALAD -> PaletteStyle.FruitSalad
+        ColorPaletteStyle.MONOCHROME -> PaletteStyle.Monochrome
+        ColorPaletteStyle.FIDELITY -> PaletteStyle.Fidelity
+        ColorPaletteStyle.CONTENT -> PaletteStyle.Content
     }
-
-    return (if (useDarkTheme) darkColorScheme() else lightColorScheme()).copy(
-        primary = role(dynamic.primary()),
-        onPrimary = role(dynamic.onPrimary()),
-        primaryContainer = role(dynamic.primaryContainer()),
-        onPrimaryContainer = role(dynamic.onPrimaryContainer()),
-        inversePrimary = role(dynamic.inversePrimary()),
-        secondary = role(dynamic.secondary()),
-        onSecondary = role(dynamic.onSecondary()),
-        secondaryContainer = role(dynamic.secondaryContainer()),
-        onSecondaryContainer = role(dynamic.onSecondaryContainer()),
-        tertiary = role(dynamic.tertiary()),
-        onTertiary = role(dynamic.onTertiary()),
-        tertiaryContainer = role(dynamic.tertiaryContainer()),
-        onTertiaryContainer = role(dynamic.onTertiaryContainer()),
-        background = role(dynamic.background()),
-        onBackground = role(dynamic.onBackground()),
-        surface = role(dynamic.surface()),
-        onSurface = role(dynamic.onSurface()),
-        surfaceVariant = role(dynamic.surfaceVariant()),
-        onSurfaceVariant = role(dynamic.onSurfaceVariant()),
-        surfaceTint = role(dynamic.surfaceTint()),
-        inverseSurface = role(dynamic.inverseSurface()),
-        inverseOnSurface = role(dynamic.inverseOnSurface()),
-        error = role(dynamic.error()),
-        onError = role(dynamic.onError()),
-        errorContainer = role(dynamic.errorContainer()),
-        onErrorContainer = role(dynamic.onErrorContainer()),
-        outline = role(dynamic.outline()),
-        outlineVariant = role(dynamic.outlineVariant()),
-        scrim = role(dynamic.scrim()),
-        surfaceBright = role(dynamic.surfaceBright()),
-        surfaceDim = role(dynamic.surfaceDim()),
-        surfaceContainer = role(dynamic.surfaceContainer()),
-        surfaceContainerHigh = role(dynamic.surfaceContainerHigh()),
-        surfaceContainerHighest = role(dynamic.surfaceContainerHighest()),
-        surfaceContainerLow = role(dynamic.surfaceContainerLow()),
-        surfaceContainerLowest = role(dynamic.surfaceContainerLowest()),
+    // The 2025 spec only covers a subset of styles; the rest fall back to 2021.
+    val spec = when (specVersion) {
+        ColorSpecVersion.SPEC_2025 ->
+            if (colorPaletteStyle.supportsSpec2025) ColorSpec.SpecVersion.SPEC_2025 else ColorSpec.SpecVersion.SPEC_2021
+        ColorSpecVersion.SPEC_2021 -> ColorSpec.SpecVersion.SPEC_2021
+    }
+    return dynamicColorScheme(
+        seedColor = seedColor,
+        isDark = useDarkTheme,
+        style = style,
+        contrastLevel = 0.0,
+        specVersion = spec,
     )
 }
+
 
 @Composable
 private fun animatedColorScheme(colorScheme: ColorScheme): ColorScheme {
@@ -221,6 +208,7 @@ fun DsuExtendedTheme(
     dynamicColor: Boolean = false,
     themeMode: ThemeMode = ThemeMode.SYSTEM,
     colorPaletteStyle: ColorPaletteStyle = ColorPaletteStyle.TONAL_SPOT,
+    colorSpecVersion: ColorSpecVersion = ColorSpecVersion.SPEC_2021,
     appFontPreset: AppFontPreset = AppFontPreset.GOOGLE_SANS_FLEX,
     animateColors: Boolean = true,
     content: @Composable () -> Unit,
@@ -271,6 +259,7 @@ fun DsuExtendedTheme(
                 seedColor = dynamicSeedColor ?: Primary,
                 useDarkTheme = useDarkTheme,
                 colorPaletteStyle = effectivePaletteStyle,
+                specVersion = colorSpecVersion,
             )
         }
     val normalizedColorScheme =

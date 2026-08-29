@@ -53,6 +53,7 @@ import com.dsu.extended.service.PrivilegedSystemService
 import com.dsu.extended.ui.screen.Navigation
 import com.dsu.extended.ui.theme.AppFontPreset
 import com.dsu.extended.ui.theme.ColorPaletteStyle
+import com.dsu.extended.ui.theme.ColorSpecVersion
 import com.dsu.extended.ui.theme.DsuExtendedTheme
 import com.dsu.extended.ui.theme.ThemeMode
 import com.dsu.extended.util.AppLogger
@@ -472,10 +473,14 @@ class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListe
                 preferences[stringPreferencesKey(AppPrefs.MATERIAL_COLOR_STYLE)] ?: ColorPaletteStyle.TONAL_SPOT.value
             val colorPaletteStyle = ColorPaletteStyle.fromPreference(colorPalettePreference)
             val useDynamicColor = preferences[booleanPreferencesKey(AppPrefs.USE_DYNAMIC_COLOR)] ?: false
+            val colorSpecPreference =
+                preferences[stringPreferencesKey(AppPrefs.MATERIAL_COLOR_SPEC)] ?: ColorSpecVersion.SPEC_2021.value
+            val colorSpecVersion = ColorSpecVersion.fromPreference(colorSpecPreference)
             DsuExtendedTheme(
                 themeMode = themeMode,
                 dynamicColor = useDynamicColor,
                 colorPaletteStyle = colorPaletteStyle,
+                colorSpecVersion = colorSpecVersion,
                 appFontPreset = appFontPreset,
             ) {
                 CompositionLocalProvider(LocalContentMaxWidth provides contentMaxWidth) {

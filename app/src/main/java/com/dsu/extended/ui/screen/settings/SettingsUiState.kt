@@ -3,6 +3,7 @@ package com.dsu.extended.ui.screen.settings
 import com.dsu.extended.preferences.AppPrefs
 import com.dsu.extended.ui.theme.AppFontPreset
 import com.dsu.extended.ui.theme.ColorPaletteStyle
+import com.dsu.extended.ui.theme.ColorSpecVersion
 import com.dsu.extended.ui.theme.ThemeMode
 import com.dsu.extended.util.PreferredPrivilegedMode
 
@@ -37,6 +38,7 @@ data class SettingsUiState(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val useDynamicColor: Boolean = false,
     val colorPaletteStyle: ColorPaletteStyle = ColorPaletteStyle.TONAL_SPOT,
+    val colorSpecVersion: ColorSpecVersion = ColorSpecVersion.SPEC_2021,
 ) {
     val useBuiltInInstaller: Boolean
         get() = preferences[AppPrefs.USE_BUILTIN_INSTALLER] ?: false

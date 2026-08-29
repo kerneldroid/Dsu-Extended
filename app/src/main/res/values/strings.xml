@@ -187,6 +187,13 @@
     <string name="material_color_style_expressive">Expressive</string>
     <string name="material_color_style_vibrant">Vibrant</string>
     <string name="material_color_style_monochrome">Monochrome</string>
+    <string name="material_color_style_neutral">Neutral</string>
+    <string name="material_color_style_rainbow">Rainbow</string>
+    <string name="material_color_style_fruit_salad">Fruit Salad</string>
+    <string name="material_color_style_fidelity">Fidelity</string>
+    <string name="material_color_style_content">Content</string>
+    <string name="material_color_spec_2021">SPEC 2021</string>
+    <string name="material_color_spec_2025">SPEC 2025</string>
 
     <string name="dynamic_color_title">Use dynamic color</string>
     <string name="dynamic_color_description_on">Material You colors from wallpaper seed (Android 12+), with selected palette style</string>

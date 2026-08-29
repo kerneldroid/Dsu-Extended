@@ -16,4 +16,5 @@ object AppPrefs {
     const val THEME_MODE = "theme_mode"
     const val USE_DYNAMIC_COLOR = "use_dynamic_color"
     const val MATERIAL_COLOR_STYLE = "material_color_style"
+    const val MATERIAL_COLOR_SPEC = "material_color_spec"
 }
