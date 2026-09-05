@@ -96,7 +96,7 @@ class InstallationLiveUpdateNotifier(
             builder.setRequestPromotedOngoing(false)
         }
 
-        notify(builder)
+        notify(builder.build())
     }
 
     fun showError(errorText: String) {
@@ -119,16 +119,16 @@ class InstallationLiveUpdateNotifier(
             builder.setRequestPromotedOngoing(false)
         }
 
-        notify(builder)
+        notify(builder.build())
     }
 
     fun cancel() {
         manager.cancel(NOTIFICATION_ID)
     }
 
-    private fun notify(builder: NotificationCompat.Builder) {
+    private fun notify(notification: android.app.Notification) {
         runCatching {
-            manager.notify(NOTIFICATION_ID, builder.build())
+            manager.notify(NOTIFICATION_ID, notification)
         }.onFailure {
             AppLogger.w(tag, "Failed to post installation live update notification", "error" to (it.message ?: "unknown"))
         }
