@@ -37,7 +37,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
-import org.lsposed.hiddenapibypass.HiddenApiBypass
 import com.rosan.dhizuku.api.Dhizuku
 import com.rosan.dhizuku.api.DhizukuRequestPermissionListener
 import com.rosan.dhizuku.api.DhizukuUserServiceArgs
@@ -500,7 +499,6 @@ class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListe
     }
 
     override fun attachBaseContext(newBase: Context?) {
-        HiddenApiBypass.addHiddenApiExemptions("")
         super.attachBaseContext(newBase)
     }
 

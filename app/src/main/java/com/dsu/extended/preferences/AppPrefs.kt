@@ -17,4 +17,7 @@ object AppPrefs {
     const val USE_DYNAMIC_COLOR = "use_dynamic_color"
     const val MATERIAL_COLOR_STYLE = "material_color_style"
     const val MATERIAL_COLOR_SPEC = "material_color_spec"
+    const val INSTALLATION_IN_PROGRESS = "installation_in_progress"
+    const val DSU_INSTALLED = "dsu_installed"
+    const val DSU_RUNNING = "dsu_running"
 }

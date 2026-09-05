@@ -27,6 +27,8 @@ import com.dsu.extended.util.OperationModeUtils
 import com.dsu.extended.util.PreferredPrivilegedMode
 import com.dsu.extended.util.AppLogger
 import com.dsu.extended.util.DataStoreUtils
+import com.dsu.extended.widget.DsuAppWidget
+import androidx.glance.appwidget.updateAll
 
 private suspend fun probeHasRoot(): Boolean =
     withContext(Dispatchers.IO) {
@@ -150,6 +152,7 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             updateStringPref(AppPrefs.THEME_MODE, mode.value)
             _uiState.update { it.copy(themeMode = mode) }
+            refreshWidget()
         }
     }
 
@@ -157,6 +160,7 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             updateStringPref(AppPrefs.APP_FONT_PRESET, preset.value)
             _uiState.update { it.copy(appFontPreset = preset) }
+            refreshWidget()
         }
     }
 
@@ -164,6 +168,7 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             updateBoolPref(AppPrefs.USE_DYNAMIC_COLOR, enabled)
             _uiState.update { it.copy(useDynamicColor = enabled) }
+            refreshWidget()
         }
     }
 
@@ -171,6 +176,7 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             updateStringPref(AppPrefs.MATERIAL_COLOR_STYLE, style.value)
             _uiState.update { it.copy(colorPaletteStyle = style) }
+            refreshWidget()
         }
     }
 
@@ -178,7 +184,12 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             updateStringPref(AppPrefs.MATERIAL_COLOR_SPEC, specVersion.value)
             _uiState.update { it.copy(colorSpecVersion = specVersion) }
+            refreshWidget()
         }
+    }
+
+    private suspend fun refreshWidget() {
+        runCatching { DsuAppWidget().updateAll(application) }
     }
 
     fun checkAllStatusSummary(): String {

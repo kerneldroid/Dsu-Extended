@@ -10,7 +10,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Description
@@ -117,7 +120,10 @@ fun Navigation() {
     }
 
     Scaffold(
-        containerColor = Color.Transparent,
+        // Must match AppScaffold content Surface (scheme.background): the dock's
+        // rounded top corners and the system-inset strip expose this container.
+        // Transparent leaked the window background through as a visible seam.
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             AnimatedVisibility(
                 visible = showMainTabs,
@@ -140,10 +146,18 @@ fun Navigation() {
             }
         },
     ) { innerPadding ->
+        // Strip the system-nav inset back out: the dock already reserves it
+        // internally (navigationBarsPadding), and dock-less screens draw
+        // edge-to-edge like before. Content slides under the opaque dock, so
+        // no window-background seam can appear anywhere.
+        val navInsetBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+        val contentBottom = (innerPadding.calculateBottomPadding() - navInsetBottom).coerceAtLeast(0.dp)
         NavHost(
             navController = navController,
             startDestination = Destinations.Homepage,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = contentBottom),
         ) {
             composable(
                 route = Destinations.Homepage,

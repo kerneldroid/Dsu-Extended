@@ -6,6 +6,8 @@ import android.net.Uri
 import android.os.Build
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.viewModelScope
 import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -42,6 +44,8 @@ import com.dsu.extended.util.StoredLogType
 import com.dsu.extended.util.StorageUtils
 import com.dsu.extended.util.AppLogger
 import com.dsu.extended.util.InstallationLiveUpdateNotifier
+import com.dsu.extended.widget.DsuAppWidget
+import androidx.glance.appwidget.updateAll
 
 import kotlin.math.roundToInt
 
@@ -95,6 +99,7 @@ class HomeViewModel @Inject constructor(
         _uiState.update { it.copy(sheetDisplay = sheetDisplay) }
 
     fun resetInstallationCard() {
+        setInstallingFlag(false)
         liveUpdateNotifier.cancel()
         _uiState.update {
             it.copy(
@@ -106,6 +111,34 @@ class HomeViewModel @Inject constructor(
 
     fun dismissSheet() = updateSheetState(SheetDisplayState.NONE)
 
+    // Read by the app widget: while true the widget shows a non-clickable
+    // "installing" state so a tap can't relaunch MainActivity mid-install.
+    private fun setInstallingFlag(value: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                updateBoolPref(AppPrefs.INSTALLATION_IN_PROGRESS, value)
+                DsuAppWidget().updateAll(application)
+            }
+        }
+    }
+
+    // Single publisher of DSU status: Session (in-memory manager state) +
+    // persisted prefs (widget's only source) + immediate widget refresh.
+    // One edit() transaction so installed/running never desync.
+    private fun publishDsuState(installed: Boolean, running: Boolean) {
+        session.dsuInstalled.value = installed
+        session.dsuRunning.value = running
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                dataStore.edit { prefs ->
+                    prefs[booleanPreferencesKey(AppPrefs.DSU_INSTALLED)] = installed
+                    prefs[booleanPreferencesKey(AppPrefs.DSU_RUNNING)] = running
+                }
+                DsuAppWidget().updateAll(application)
+            }
+        }
+    }
+
     init {
         val propRunning = DevicePropUtils.isGsiRunning()
         val propInstalled = DevicePropUtils.isGsiInstalled()
@@ -115,17 +148,21 @@ class HomeViewModel @Inject constructor(
         } else if (propInstalled) {
             updateInstallationCard { it.copy(installationStep = InstallationStep.DSU_ALREADY_INSTALLED) }
         }
+        publishDsuState(installed = propInstalled, running = propRunning)
 
         viewModelScope.launch {
             PrivilegedProvider.run {
                 if (isInUse) {
                     updateInstallationCard { it.copy(installationStep = InstallationStep.DSU_ALREADY_RUNNING_DYN_OS) }
+                    publishDsuState(installed = true, running = true)
                     return@run
                 }
                 if (isInstalled) {
                     updateInstallationCard { it.copy(installationStep = InstallationStep.DSU_ALREADY_INSTALLED) }
+                    publishDsuState(installed = true, running = false)
                     return@run
                 }
+                publishDsuState(installed = false, running = false)
             }
         }
     }
@@ -234,6 +271,7 @@ class HomeViewModel @Inject constructor(
 
     fun onConfirmInstallationSheet() {
         dismissSheet()
+        setInstallingFlag(true)
         installationJob?.cancel()
         installationJob = viewModelScope.launch(Dispatchers.IO) {
             val currentJob = coroutineContext[Job]!!
@@ -397,6 +435,7 @@ class HomeViewModel @Inject constructor(
 
     fun onClickRebootToDynOS() {
         updateInstallationCard { it.copy(installationStep = InstallationStep.PROCESSING) }
+        publishDsuState(installed = true, running = true)
         viewModelScope.launch {
             PrivilegedProvider.run {
                 setEnable(true, true)
@@ -407,6 +446,7 @@ class HomeViewModel @Inject constructor(
 
     fun onClickDiscardGsiAndStartInstallation() {
         updateInstallationCard { it.copy(installationStep = InstallationStep.PROCESSING) }
+        setInstallingFlag(true)
         _uiState.update { it.copy(discardInProgress = true) }
         viewModelScope.launch {
             // Give the overlay + blur a chance to render before the blocking privileged calls.
@@ -426,6 +466,7 @@ class HomeViewModel @Inject constructor(
 
     fun onClickDiscardGsi() {
         updateInstallationCard { it.copy(installationStep = InstallationStep.PROCESSING) }
+        setInstallingFlag(true)
         // Close the sheet first so the overlay is visible, then render it before blocking work.
         dismissSheet()
         _uiState.update { it.copy(discardInProgress = true) }
@@ -438,9 +479,13 @@ class HomeViewModel @Inject constructor(
                 }
             }
             resetInstallationCard()
+            publishDsuState(installed = false, running = false)
             _uiState.update { it.copy(discardInProgress = false, discardFinishing = true) }
             delay(250)
             _uiState.update { it.copy(discardFinishing = false) }
+            viewModelScope.launch(Dispatchers.IO) {
+                runCatching { DsuAppWidget().updateAll(application) }
+            }
         }
     }
 
@@ -579,17 +624,27 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun onRootInstallationSuccess() {
+        setInstallingFlag(false)
+        publishDsuState(installed = true, running = false)
         persistInstallationSnapshot("installation_success_root")
         liveUpdateNotifier.showSuccess(canRebootToDsu = true)
         updateInstallationCard { it.copy(installationStep = InstallationStep.INSTALL_SUCCESS_REBOOT_DYN_OS) }
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching { DsuAppWidget().updateAll(application) }
+        }
     }
 
     private fun onInstallationSuccess() {
+        setInstallingFlag(false)
+        publishDsuState(installed = true, running = false)
         AppLogger.i(tag, "Installation marked as successful")
         pushLogsNow()
         persistInstallationSnapshot("installation_success")
         liveUpdateNotifier.showSuccess(canRebootToDsu = false)
         updateInstallationCard { it.copy(installationStep = InstallationStep.INSTALL_SUCCESS) }
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching { DsuAppWidget().updateAll(application) }
+        }
     }
 
     private fun onLogLineReceived() {
@@ -634,6 +689,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun onInstallationError(error: InstallationStep, errorContent: String) {
+        setInstallingFlag(false)
         AppLogger.e(tag, "Installation error received", null, "step" to error)
         persistInstallationSnapshot("installation_error_${error.name.lowercase()}")
         updateInstallationCard {

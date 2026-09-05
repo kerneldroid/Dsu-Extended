@@ -8,10 +8,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
@@ -32,7 +37,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.Switch
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
@@ -177,8 +181,11 @@ fun Partitions(
                             },
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
-                                .navigationBarsPadding()
-                                .padding(end = 20.dp, bottom = 100.dp),
+                                .padding(
+                                    end = 20.dp,
+                                    bottom = 20.dp + WindowInsets.navigationBars.asPaddingValues()
+                                        .calculateBottomPadding(),
+                                ),
                             shape = flowerShape,
                             containerColor = MaterialTheme.colorScheme.primaryContainer,
                             contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -274,7 +281,12 @@ private fun ReadyPanel(
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 10.dp, bottom = 120.dp),
+        contentPadding = PaddingValues(
+            start = 12.dp,
+            end = 12.dp,
+            top = 10.dp,
+            bottom = 16.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
+        ),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         uiState.groups.forEach { group ->
@@ -308,16 +320,35 @@ private fun ImageRow(
     val replaceLabel = stringResource(id = R.string.partitions_action_replace)
     val exportLabel = stringResource(id = R.string.partitions_action_export)
     val deleteLabel = stringResource(id = R.string.partitions_action_delete)
-    ListItem(
+    CardBox(
         modifier = Modifier.fillMaxWidth(),
-        leadingContent = {
+        addPadding = true,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Icon(
                 imageVector = Icons.Rounded.Storage,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(end = 12.dp),
             )
-        },
-        trailingContent = {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(id = R.string.partitions_image_title),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    text = entry.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontFamily = FontFamily.Monospace,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
             ButtonGroup(
                 overflowIndicator = { menuState ->
                     ButtonGroupDefaults.OverflowIndicator(menuState = menuState, enabled = enabled)
@@ -348,18 +379,8 @@ private fun ImageRow(
                     enabled = enabled,
                 )
             }
-        },
-        supportingContent = {
-            Text(
-                text = entry.name,
-                style = MaterialTheme.typography.bodyMedium,
-                fontFamily = FontFamily.Monospace,
-            )
-        },
-        content = {
-            Text(text = stringResource(id = R.string.partitions_image_title), style = MaterialTheme.typography.titleMedium)
-        },
-    )
+        }
+    }
 }
 
 @Composable

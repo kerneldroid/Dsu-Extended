@@ -86,26 +86,26 @@ enum class ColorSpecVersion {
     }
 }
 
-private fun ColorScheme.toOledSurfaceScheme(): ColorScheme {
+internal fun ColorScheme.toOledSurfaceScheme(): ColorScheme {
     return copy(
         background = Color(0xFF000000),
         onBackground = Color(0xFFF2F2F2),
         surface = Color(0xFF000000),
         onSurface = Color(0xFFF2F2F2),
-        surfaceVariant = Color(0xFF222222),
+        surfaceVariant = Color(0xFF141414),
         onSurfaceVariant = Color(0xFFE7E7E7),
         inverseSurface = Color(0xFFEAEAEA),
         inverseOnSurface = Color(0xFF111111),
         outline = Color(0xFF4A4A4A),
-        outlineVariant = Color(0xFF333333),
+        outlineVariant = Color(0xFF222222),
         scrim = Color(0xD9000000),
-        surfaceBright = Color(0xFF242424),
+        surfaceBright = Color(0xFF000000),
         surfaceDim = Color(0xFF000000),
         surfaceContainerLowest = Color(0xFF000000),
-        surfaceContainerLow = Color(0xFF1C1C1C),
-        surfaceContainer = Color(0xFF232323),
-        surfaceContainerHigh = Color(0xFF2A2A2A),
-        surfaceContainerHighest = Color(0xFF313131),
+        surfaceContainerLow = Color(0xFF000000),
+        surfaceContainer = Color(0xFF000000),
+        surfaceContainerHigh = Color(0xFF0A0A0A),
+        surfaceContainerHighest = Color(0xFF141414),
     )
 }
 

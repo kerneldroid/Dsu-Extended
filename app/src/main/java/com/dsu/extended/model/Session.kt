@@ -54,6 +54,10 @@ class Session(
     var dsuInstallation: DSUInstallationSource = DSUInstallationSource(),
     var preferences: InstallationPreferences = InstallationPreferences(),
     var operationMode: MutableStateFlow<OperationMode> = MutableStateFlow(OperationMode.ADB),
+    // Single source of truth for DSU status, owned by the app layer.
+    // The widget only renders this (persisted) state, never probes it itself.
+    var dsuInstalled: MutableStateFlow<Boolean> = MutableStateFlow(false),
+    var dsuRunning: MutableStateFlow<Boolean> = MutableStateFlow(false),
 ) {
 
     fun isRoot(): Boolean {

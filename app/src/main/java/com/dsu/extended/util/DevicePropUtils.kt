@@ -49,7 +49,9 @@ class DevicePropUtils {
         }
 
         fun isGsiInstalled(): Boolean {
-            return getSystemProperty("ro.gsid.image_installed") == "1"
+            // Real name has no "ro." prefix (libgsi kGsiInstalledProp).
+            // Untrusted apps have no SELinux read on gsid_prop: best-effort only.
+            return getSystemProperty("gsid.image_installed") == "1"
         }
 
         fun isGsiRunning(): Boolean {

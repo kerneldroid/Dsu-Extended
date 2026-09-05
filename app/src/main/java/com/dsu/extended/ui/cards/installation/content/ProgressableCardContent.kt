@@ -20,6 +20,8 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Arrangement
@@ -61,7 +63,7 @@ import com.dsu.extended.ui.theme.DSUTextStyles
 import com.dsu.extended.ui.theme.SemanticColors
 import com.dsu.extended.ui.theme.AppFontFamily
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun ProgressableCardContent(
     text: String,
@@ -295,7 +297,8 @@ fun ProgressableCardContent(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Action buttons
+        // Action buttons: strictly one row. When both buttons are present they
+        // split the width evenly; text ellipsizes instead of wrapping.
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -315,20 +318,25 @@ fun ProgressableCardContent(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
             }
-            Spacer(modifier = Modifier.weight(1F))
+            val twoButtons = onClickFirstButton != null && onClickSecondButton != null
+            if (!twoButtons) {
+                Spacer(modifier = Modifier.weight(1F))
+            }
             if (onClickSecondButton != null) {
                 SecondaryButton(
                     text = textSecondButton,
                     onClick = onClickSecondButton,
+                    modifier = if (twoButtons) Modifier.weight(1F) else Modifier,
                 )
             }
-            if (onClickFirstButton != null && onClickSecondButton != null) {
-                Spacer(modifier = Modifier.width(12.dp))
+            if (twoButtons) {
+                Spacer(modifier = Modifier.width(8.dp))
             }
             if (onClickFirstButton != null) {
                 PrimaryButton(
                     text = textFirstButton,
                     onClick = onClickFirstButton,
+                    modifier = if (twoButtons) Modifier.weight(1F) else Modifier,
                 )
             }
         }
