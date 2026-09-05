@@ -18,6 +18,10 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
 
+    <!-- Foreground install service (long GSI transfer) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+
     <application
         android:name=".DsuExtendedApplication"
         android:allowBackup="true"
@@ -60,6 +64,12 @@
             android:name="com.dsu.extended.service.PrivilegedSystemService"
             android:enabled="true"
             android:exported="false" />
+
+        <service
+            android:name="com.dsu.extended.service.DsuInstallService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
 
         <receiver
             android:name=".widget.DsuWidgetReceiver"

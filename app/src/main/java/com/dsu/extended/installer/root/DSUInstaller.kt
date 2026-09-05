@@ -178,10 +178,27 @@ class DSUInstaller(
         uncompressedSize: Long,
         inputStream: InputStream,
         readOnly: Boolean = true,
+        closeInput: Boolean = true,
     ) {
-        val sis = SparseInputStream(
-            BufferedInputStream(inputStream),
-        )
+        try {
+            SparseInputStream(
+                BufferedInputStream(inputStream),
+            ).use { sis ->
+                installImageFromStream(partition, uncompressedSize, sis, readOnly)
+            }
+        } finally {
+            if (closeInput) {
+                runCatching { inputStream.close() }
+            }
+        }
+    }
+
+    private fun installImageFromStream(
+        partition: String,
+        uncompressedSize: Long,
+        sis: SparseInputStream,
+        readOnly: Boolean,
+    ) {
         val partitionSize = if (sis.unsparseSize != -1L) sis.unsparseSize else uncompressedSize
         onCreatePartition(partition)
         if (!createNewPartition(partition, partitionSize, readOnly)) {
@@ -191,7 +208,8 @@ class DSUInstaller(
         SharedMemory.create("dsu_buffer_$partition", Constants.SHARED_MEM_SIZE)
             .use { sharedMemory ->
                 MappedMemoryBuffer(sharedMemory.mapReadWrite()).use { mappedBuffer ->
-                    val fdDup = getFdDup(sharedMemory)
+                    // gsid dups the fd on setAshmem; close our copy right away.
+                    getFdDup(sharedMemory).use { fdDup ->
                     if (!setAshmem(fdDup, sharedMemory.size.toLong())) {
                         onInstallationError(InstallationStep.ERROR, "Failed to map installation ashmem")
                         installationJob.cancel()
@@ -219,6 +237,7 @@ class DSUInstaller(
                         publishProgress(installedSize, partitionSize, partition)
                     }
                     publishProgress(partitionSize, partitionSize, partition)
+                    }
                 }
             }
 
@@ -237,17 +256,18 @@ class DSUInstaller(
     }
 
     private fun installStreamingZipUpdate(inputStream: InputStream): Boolean {
-        val zis = ZipInputStream(inputStream)
-        while (true) {
-            val entry = zis.nextEntry ?: break
-            val fileName = entry.name
-            if (shouldInstallEntry(fileName)) {
-                installImageFromAnEntry(entry, zis)
-            } else {
-                AppLogger.d(tag, "Entry skipped", "fileName" to fileName)
-            }
-            if (installationJob.isCancelled) {
-                break
+        ZipInputStream(inputStream).use { zis ->
+            while (true) {
+                val entry = zis.nextEntry ?: break
+                val fileName = entry.name
+                if (shouldInstallEntry(fileName)) {
+                    installImageFromAnEntry(entry, zis)
+                } else {
+                    AppLogger.d(tag, "Entry skipped", "fileName" to fileName)
+                }
+                if (installationJob.isCancelled) {
+                    break
+                }
             }
         }
         return true
@@ -258,10 +278,31 @@ class DSUInstaller(
         AppLogger.i(tag, "Installing zip entry", "fileName" to fileName, "size" to entry.size)
         val partitionName = extractPartitionName(fileName)
         val uncompressedSize = entry.size
-        installImage(partitionName, uncompressedSize, inputStream)
+        // Shared zip stream: must stay open for the next entry.
+        installImage(partitionName, uncompressedSize, inputStream, closeInput = false)
     }
 
+    // Rollback bookkeeping: only a started-but-unfinished slot is reverted.
+    private var installSessionStarted = false
+    private var installFinished = false
+
     private fun startInstallation() {
+        try {
+            runStartInstallation()
+        } finally {
+            if (installSessionStarted && !installFinished) {
+                AppLogger.w(tag, "Rolling back incomplete install slot")
+                runCatching { closePartition() }
+                runCatching {
+                    if (!abort()) {
+                        remove()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun runStartInstallation() {
         PrivilegedProvider.getService().setDynProp()
         if (isInUse) {
             onInstallationError(InstallationStep.ERROR_ALREADY_RUNNING_DYN_OS, "")
@@ -276,6 +317,7 @@ class DSUInstaller(
             onInstallationError(InstallationStep.ERROR, "Failed to start DSU installation session")
             return
         }
+        installSessionStarted = true
         installWritablePartition("userdata", userdataSize)
         if (installationJob.isCancelled) {
             return
@@ -313,6 +355,7 @@ class DSUInstaller(
                 return
             }
             AppLogger.i(tag, "Installation finished successfully")
+            installFinished = true
             onInstallationSuccess()
         }
     }

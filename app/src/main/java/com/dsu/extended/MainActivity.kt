@@ -505,9 +505,9 @@ class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListe
     override fun onDestroy() {
         super.onDestroy()
         AppLogger.i(tag, "MainActivity destroyed", "changingConfig" to isChangingConfigurations)
-        if (isChangingConfigurations) {
-            return
-        }
-        unbindForMode(activeServiceMode ?: session.getOperationMode())
+        // Binder ownership is process-scoped on purpose: unbinding here would
+        // drop RootService/Shizuku mid-install when the Activity dies while
+        // DsuInstallService is still flashing. Unbind happens only on
+        // privileged-mode switch (rebindServiceIfNeeded) or process death.
     }
 }

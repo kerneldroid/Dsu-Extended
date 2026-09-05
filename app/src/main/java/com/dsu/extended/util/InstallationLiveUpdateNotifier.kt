@@ -20,7 +20,7 @@ class InstallationLiveUpdateNotifier(
 
     companion object {
         private const val CHANNEL_ID = "dsu_installation_live_updates"
-        private const val NOTIFICATION_ID = 0x4445
+        internal const val NOTIFICATION_ID = 0x4445
     }
 
     private val tag = this.javaClass.simpleName
@@ -34,6 +34,18 @@ class InstallationLiveUpdateNotifier(
         if (!canPostNotifications()) {
             return
         }
+        notify(buildProgressNotification(step, progress, partition))
+    }
+
+    /**
+     * Foreground-service entry notification. Never gates on post permission:
+     * the service must hand the system a Notification object regardless.
+     */
+    fun buildProgressNotification(
+        step: InstallationStep,
+        progress: Float,
+        partition: String,
+    ): android.app.Notification {
         ensureChannel()
 
         val safeProgress = progress.coerceIn(0f, 1f)
@@ -54,7 +66,7 @@ class InstallationLiveUpdateNotifier(
                 .setShortCriticalText(context.getString(R.string.live_update_notification_short_text, progressPercent))
         }
 
-        notify(builder)
+        return builder.build()
     }
 
     fun showSuccess(canRebootToDsu: Boolean) {

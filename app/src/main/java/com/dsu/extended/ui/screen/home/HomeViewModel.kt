@@ -28,7 +28,9 @@ import com.dsu.extended.core.StorageManager
 import com.dsu.extended.installer.adb.AdbInstallationHandler
 import com.dsu.extended.installer.privileged.DsuInstallationHandler
 import com.dsu.extended.installer.privileged.LogcatDiagnostic
-import com.dsu.extended.installer.root.DSUInstaller
+import androidx.core.content.ContextCompat
+import com.dsu.extended.service.DsuInstallService
+import com.dsu.extended.service.InstallStatusBus
 import com.dsu.extended.model.DSUInstallationSource
 import com.dsu.extended.model.Session
 import com.dsu.extended.preferences.AppPrefs
@@ -340,19 +342,46 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private var serviceBusJob: Job? = null
+
     private fun startDSUInstallation() {
-        val currentJob = installationJob ?: return
-        DSUInstaller(
-            application = application,
-            userdataSize = session.userSelection.userSelectedUserdata,
-            dsuInstallation = session.dsuInstallation,
-            installationJob = currentJob,
-            onInstallationError = this::onInstallationError,
-            onInstallationProgressUpdate = this::onInstallationProgressUpdate,
-            onCreatePartition = this::onCreatePartition,
-            onInstallationStepUpdate = this::onStepUpdate,
-            onInstallationSuccess = this::onRootInstallationSuccess,
-        ).invoke()
+        // Flashing is hosted in DsuInstallService (own scope + foreground
+        // priority): Activity destroy/recreate cannot tear it down. This VM
+        // only mirrors InstallStatusBus events onto its card handlers.
+        AppLogger.i(tag, "Handing root install to DsuInstallService")
+        collectServiceBus()
+        ContextCompat.startForegroundService(
+            application,
+            DsuInstallService.startIntent(application),
+        )
+    }
+
+    private fun collectServiceBus() {
+        serviceBusJob?.cancel()
+        serviceBusJob = viewModelScope.launch {
+            InstallStatusBus.events.collect { event ->
+                when (event) {
+                    is InstallStatusBus.Event.Step ->
+                        onStepUpdate(event.step)
+                    is InstallStatusBus.Event.Progress ->
+                        onInstallationProgressUpdate(event.progress, event.partition)
+                    is InstallStatusBus.Event.Partition ->
+                        onCreatePartition(event.partition)
+                    is InstallStatusBus.Event.TerminalSuccess -> {
+                        serviceBusJob?.cancel()
+                        onRootInstallationSuccess()
+                    }
+                    is InstallStatusBus.Event.TerminalError -> {
+                        serviceBusJob?.cancel()
+                        onInstallationError(event.step, event.text)
+                    }
+                    is InstallStatusBus.Event.TerminalCanceled -> {
+                        serviceBusJob?.cancel()
+                        resetInstallationCard()
+                    }
+                }
+            }
+        }
     }
 
     private fun startPrivilegedInstallation() {
@@ -422,6 +451,12 @@ class HomeViewModel @Inject constructor(
     fun onClickCancelInstallationButton() {
         persistInstallationSnapshot("installation_canceled")
         resetInstallationCard()
+        serviceBusJob?.cancel()
+        runCatching {
+            application.startService(
+                DsuInstallService.cancelIntent(application),
+            )
+        }
         if (session.getOperationMode() != OperationMode.ADB && logger?.isLogging?.get() == true) {
             AppLogger.w(tag, "Cancelling active installation")
             logger?.destroy()
