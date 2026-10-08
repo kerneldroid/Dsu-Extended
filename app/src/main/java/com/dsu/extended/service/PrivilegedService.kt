@@ -49,10 +49,16 @@ class PrivilegedService : IPrivilegedService.Stub() {
         exitProcess(0)
     }
 
-    private fun getBinder(service: String): IBinder {
-        val serviceManager = Class.forName("android.os.ServiceManager")
-        val binder = HiddenApiBypass.invoke(serviceManager, null, "getService", service)
-        return binder as IBinder
+    /**
+     * ServiceManager.getService() may legitimately return null (service not
+     * registered on this device/ROM). Never crash on that: callers degrade
+     * to safe defaults instead of force-closing the app.
+     */
+    private fun getBinder(service: String): IBinder? {
+        return runCatching {
+            val serviceManager = Class.forName("android.os.ServiceManager")
+            HiddenApiBypass.invoke(serviceManager, null, "getService", service) as? IBinder
+        }.getOrNull()
     }
 
     fun setProp(key: String, value: String) {
@@ -73,14 +79,18 @@ class PrivilegedService : IPrivilegedService.Stub() {
 
     private var ACTIVITY_MANAGER: IActivityManager? = null
 
-    private fun requiresActivityManager() {
+    private fun requiresActivityManager(): Boolean {
         if (ACTIVITY_MANAGER == null) {
-            ACTIVITY_MANAGER = IActivityManager.Stub.asInterface(getBinder("activity"))
+            val binder = getBinder("activity") ?: return false
+            ACTIVITY_MANAGER = IActivityManager.Stub.asInterface(binder)
         }
+        return ACTIVITY_MANAGER != null
     }
 
     override fun startActivity(intent: Intent?) {
-        requiresActivityManager()
+        if (!requiresActivityManager()) {
+            return
+        }
         val callerPackage =
             if (uid == 2000 || uid == 0) "com.android.shell" else BuildConfig.APPLICATION_ID
 
@@ -117,45 +127,59 @@ class PrivilegedService : IPrivilegedService.Stub() {
     }
 
     override fun forceStopPackage(packageName: String?) {
-        requiresActivityManager()
+        if (!requiresActivityManager()) {
+            return
+        }
         ACTIVITY_MANAGER!!.forceStopPackage(packageName, 0)
     }
 
     private var PACKAGE_MANAGER: IPackageManager? = null
 
-    private fun requiresPackageManager() {
+    private fun requiresPackageManager(): Boolean {
         if (PACKAGE_MANAGER == null) {
-            PACKAGE_MANAGER = IPackageManager.Stub.asInterface(getBinder("package"))
+            val binder = getBinder("package") ?: return false
+            PACKAGE_MANAGER = IPackageManager.Stub.asInterface(binder)
         }
+        return PACKAGE_MANAGER != null
     }
 
     override fun grantPermission(permissionName: String?) {
-        requiresPackageManager()
+        if (!requiresPackageManager()) {
+            return
+        }
         PACKAGE_MANAGER!!.grantRuntimePermission(BuildConfig.APPLICATION_ID, permissionName, 0)
     }
 
     private var STORAGE_MANAGER: IStorageManager? = null
 
-    private fun requiresStorageManager() {
+    private fun requiresStorageManager(): Boolean {
         if (STORAGE_MANAGER == null) {
-            STORAGE_MANAGER = IStorageManager.Stub.asInterface(getBinder("mount"))
+            val binder = getBinder("mount") ?: return false
+            STORAGE_MANAGER = IStorageManager.Stub.asInterface(binder)
         }
+        return STORAGE_MANAGER != null
     }
 
     override fun getVolumes(): List<VolumeInfo> {
-        requiresStorageManager()
+        if (!requiresStorageManager()) {
+            return emptyList()
+        }
         val vols = ArrayList<VolumeInfo>()
         vols.addAll(STORAGE_MANAGER!!.getVolumes(0))
         return vols
     }
 
     override fun unmount(volId: String?) {
-        requiresStorageManager()
+        if (!requiresStorageManager()) {
+            return
+        }
         STORAGE_MANAGER!!.unmount(volId)
     }
 
     override fun mount(volId: String?) {
-        requiresStorageManager()
+        if (!requiresStorageManager()) {
+            return
+        }
         STORAGE_MANAGER!!.mount(volId)
     }
 
@@ -173,10 +197,12 @@ class PrivilegedService : IPrivilegedService.Stub() {
 
     private var DYNAMIC_SYSTEM: IDynamicSystemService? = null
 
-    private fun requiresDynamicSystem() {
+    private fun requiresDynamicSystem(): Boolean {
         if (DYNAMIC_SYSTEM == null) {
-            DYNAMIC_SYSTEM = IDynamicSystemService.Stub.asInterface(getBinder("dynamic_system"))
+            val binder = getBinder("dynamic_system") ?: return false
+            DYNAMIC_SYSTEM = IDynamicSystemService.Stub.asInterface(binder)
         }
+        return DYNAMIC_SYSTEM != null
     }
 
     // REQUIRES MANAGE_DYNAMIC_SYSTEM
@@ -186,37 +212,49 @@ class PrivilegedService : IPrivilegedService.Stub() {
             // closePartition() was implemented on S
             return true
         }
-        requiresDynamicSystem()
+        if (!requiresDynamicSystem()) {
+            return false
+        }
         return DYNAMIC_SYSTEM!!.closePartition()
     }
 
     // REQUIRES MANAGE_DYNAMIC_SYSTEM
     override fun finishInstallation(): Boolean {
-        requiresDynamicSystem()
+        if (!requiresDynamicSystem()) {
+            return false
+        }
         return DYNAMIC_SYSTEM!!.finishInstallation()
     }
 
     // REQUIRES MANAGE_DYNAMIC_SYSTEM
     override fun getInstallationProgress(): GsiProgress? {
-        requiresDynamicSystem()
+        if (!requiresDynamicSystem()) {
+            return null
+        }
         return DYNAMIC_SYSTEM!!.installationProgress
     }
 
     // REQUIRES MANAGE_DYNAMIC_SYSTEM
     override fun abort(): Boolean {
-        requiresDynamicSystem()
+        if (!requiresDynamicSystem()) {
+            return false
+        }
         return DYNAMIC_SYSTEM!!.abort()
     }
 
     // REQUIRES MANAGE_DYNAMIC_SYSTEM
     override fun isEnabled(): Boolean {
-        requiresDynamicSystem()
+        if (!requiresDynamicSystem()) {
+            return false
+        }
         return DYNAMIC_SYSTEM!!.isEnabled
     }
 
     // REQUIRES MANAGE_DYNAMIC_SYSTEM
     override fun remove(): Boolean {
-        requiresDynamicSystem()
+        if (!requiresDynamicSystem()) {
+            return false
+        }
         // Release any inspector-held mount/mapping first, or removal of a mapped image fails.
         synchronized(inspectorLock) { teardownInspectorMount() }
         val result = DYNAMIC_SYSTEM!!.remove()
@@ -242,19 +280,25 @@ class PrivilegedService : IPrivilegedService.Stub() {
 
     // REQUIRES MANAGE_DYNAMIC_SYSTEM
     override fun setEnable(enable: Boolean, oneShot: Boolean): Boolean {
-        requiresDynamicSystem()
+        if (!requiresDynamicSystem()) {
+            return false
+        }
         return DYNAMIC_SYSTEM!!.setEnable(enable, oneShot)
     }
 
     // REQUIRES MANAGE_DYNAMIC_SYSTEM
     override fun startInstallation(dsuSlot: String?): Boolean {
-        requiresDynamicSystem()
+        if (!requiresDynamicSystem()) {
+            return false
+        }
         return DYNAMIC_SYSTEM!!.startInstallation(dsuSlot)
     }
 
     // REQUIRES MANAGE_DYNAMIC_SYSTEM
     override fun createPartition(name: String?, size: Long, readOnly: Boolean): Int {
-        requiresDynamicSystem()
+        if (!requiresDynamicSystem()) {
+            return IGsiService.INSTALL_ERROR_GENERIC
+        }
         // Below T, createPartition returns boolean
         if (Build.VERSION.SDK_INT < 33) {
             val result = HiddenApiBypass.invoke(
@@ -265,36 +309,46 @@ class PrivilegedService : IPrivilegedService.Stub() {
                 size,
                 readOnly,
             )
-            return if (result as Boolean) IGsiService.INSTALL_OK else IGsiService.INSTALL_ERROR_GENERIC
+            return if ((result as? Boolean) == true) IGsiService.INSTALL_OK else IGsiService.INSTALL_ERROR_GENERIC
         }
         return DYNAMIC_SYSTEM!!.createPartition(name, size, readOnly)
     }
 
     // REQUIRES MANAGE_DYNAMIC_SYSTEM
     override fun setAshmem(fd: ParcelFileDescriptor?, size: Long): Boolean {
-        requiresDynamicSystem()
+        if (!requiresDynamicSystem()) {
+            return false
+        }
         return DYNAMIC_SYSTEM!!.setAshmem(fd, size)
     }
 
     // REQUIRES MANAGE_DYNAMIC_SYSTEM
     override fun submitFromAshmem(bytes: Long): Boolean {
-        requiresDynamicSystem()
+        if (!requiresDynamicSystem()) {
+            return false
+        }
         return DYNAMIC_SYSTEM!!.submitFromAshmem(bytes)
     }
 
     // REQUIRES MANAGE_DYNAMIC_SYSTEM
     override fun suggestScratchSize(): Long {
-        requiresDynamicSystem()
+        if (!requiresDynamicSystem()) {
+            return 0L
+        }
         return DYNAMIC_SYSTEM!!.suggestScratchSize()
     }
 
     override fun isInUse(): Boolean {
-        requiresDynamicSystem()
+        if (!requiresDynamicSystem()) {
+            return false
+        }
         return DYNAMIC_SYSTEM!!.isInUse
     }
 
     override fun isInstalled(): Boolean {
-        requiresDynamicSystem()
+        if (!requiresDynamicSystem()) {
+            return false
+        }
         return DYNAMIC_SYSTEM!!.isInstalled
     }
 
@@ -795,7 +849,10 @@ class PrivilegedService : IPrivilegedService.Stub() {
 
         val gsi = requiresGsiService()
         runCatching {
-            check(!DYNAMIC_SYSTEM!!.isInUse) { "DSU is running" }
+            if (!requiresDynamicSystem()) {
+                throw IllegalStateException("dynamic_system service unavailable")
+            }
+            check(DYNAMIC_SYSTEM?.isInUse != true) { "DSU is running" }
         }.onFailure {
             teardownInspectorMount()
             throw IllegalStateException("Cannot inspect images while DSU is running", it)
