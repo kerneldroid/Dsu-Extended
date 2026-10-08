@@ -62,3 +62,15 @@ jobs:
         with:
           name: outputs-apk-release
           path: app/build/outputs/apk/release
+
+      # Debug APK is auto-signed, so it can be adb-installed for testing.
+      - name: Build debug APK
+        env:
+          JAVA_TOOL_OPTIONS: "--enable-native-access=ALL-UNNAMED"
+        run: ./gradlew assembleDebug
+
+      - name: Archive debug artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: outputs-apk-debug
+          path: app/build/outputs/apk/debug
