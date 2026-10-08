@@ -153,18 +153,24 @@ class HomeViewModel @Inject constructor(
         publishDsuState(installed = propInstalled, running = propRunning)
 
         viewModelScope.launch {
-            PrivilegedProvider.run {
-                if (isInUse) {
-                    updateInstallationCard { it.copy(installationStep = InstallationStep.DSU_ALREADY_RUNNING_DYN_OS) }
-                    publishDsuState(installed = true, running = true)
-                    return@run
+            // Never let a binder/service failure kill startup: worst case the
+            // card keeps the best-effort prop state set above (e.g. ADB mode).
+            runCatching {
+                PrivilegedProvider.run {
+                    if (isInUse) {
+                        updateInstallationCard { it.copy(installationStep = InstallationStep.DSU_ALREADY_RUNNING_DYN_OS) }
+                        publishDsuState(installed = true, running = true)
+                        return@run
+                    }
+                    if (isInstalled) {
+                        updateInstallationCard { it.copy(installationStep = InstallationStep.DSU_ALREADY_INSTALLED) }
+                        publishDsuState(installed = true, running = false)
+                        return@run
+                    }
+                    publishDsuState(installed = false, running = false)
                 }
-                if (isInstalled) {
-                    updateInstallationCard { it.copy(installationStep = InstallationStep.DSU_ALREADY_INSTALLED) }
-                    publishDsuState(installed = true, running = false)
-                    return@run
-                }
-                publishDsuState(installed = false, running = false)
+            }.onFailure {
+                AppLogger.w(tag, "Privileged DSU state probe failed, keeping prop state", "error" to (it.message ?: "unknown"))
             }
         }
     }
