@@ -73,21 +73,22 @@
 
     <string name="logs_tab_title">Логи</string>
     <string name="logs_title">Логи</string>
-    <string name="logs_cat_title">Cat (экспериментально)</string>
-    <string name="logs_cat_description">Собирает logcat и снимок системных логов. При root дополнительно включаются dmesg и pstore для диагностики проблем загрузки.</string>
-    <string name="logs_cat_capture">Снять Cat</string>
-    <string name="logs_cat_running">Сбор…</string>
+    <string name="logs_cat_title">Логи GSI</string>
+    <string name="logs_cat_description">Собирает только строки logcat, связанные с GSI/DSU, плюс отфильтрованные dmesg, last_kmsg и pstore при наличии root.</string>
+    <string name="logs_cat_capture">Снять логи GSI</string>
+    <string name="logs_cat_running">Сбор логов GSI…</string>
     <string name="logs_filters_title">Фильтры</string>
     <string name="logs_filter_type">Тип лога</string>
     <string name="logs_filter_type_all">Все</string>
     <string name="logs_filter_type_installation">Установка</string>
     <string name="logs_filter_type_auto">Авто-режим</string>
-    <string name="logs_filter_type_cat">Cat</string>
+    <string name="logs_filter_type_gsi">GSI</string>
+    <string name="logs_filter_type_cat">Старый Cat</string>
     <string name="logs_filter_date">Дата</string>
     <string name="logs_filter_date_all">За всё время</string>
     <string name="logs_filter_date_today">Сегодня</string>
     <string name="logs_filter_date_week">Последние 7 дней</string>
-    <string name="logs_empty">Логов пока нет. Запустите установку или сохраните Cat.</string>
+    <string name="logs_empty">Логов пока нет. Запустите установку или снимите логи GSI.</string>
     <string name="logs_action_read">Открыть</string>
     <string name="logs_action_share">Поделиться</string>
     <string name="logs_action_rename">Переименовать</string>
@@ -100,8 +101,8 @@
     <string name="logs_status_rename_failed">Не удалось переименовать</string>
     <string name="logs_status_deleted">Лог удалён</string>
     <string name="logs_status_delete_failed">Не удалось удалить</string>
-    <string name="logs_status_cat_saved">Cat-снимок сохранён</string>
-    <string name="logs_status_cat_failed">Ошибка Cat: %1$s</string>
+    <string name="logs_status_gsi_saved">GSI-снимок сохранён</string>
+    <string name="logs_status_gsi_failed">Ошибка сбора GSI-логов: %1$s</string>
     <string name="logs_status_share_failed">Не удалось поделиться логом</string>
 
     <string name="partitions_tab_title">Разделы</string>

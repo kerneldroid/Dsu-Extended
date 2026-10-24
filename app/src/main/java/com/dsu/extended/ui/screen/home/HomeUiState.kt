@@ -1,5 +1,6 @@
 package com.dsu.extended.ui.screen.home
 
+import com.dsu.extended.compat.GsiCompatibilityReport
 import com.dsu.extended.model.DiagnosticReport
 import com.dsu.extended.preparation.InstallationStep
 
@@ -49,6 +50,7 @@ enum class SheetDisplayState {
     CANCEL_INSTALLATION,
     DISCARD_DSU,
     VIEW_LOGS,
+    COMPATIBILITY,
 
     // NEW: Additional sheets
 }
@@ -68,6 +70,7 @@ data class HomeUiState(
     val isDeviceCompatible: Boolean = true,
     val discardInProgress: Boolean = false,
     val discardFinishing: Boolean = false,
+    val compatibilityReport: GsiCompatibilityReport? = null,
 ) {
     fun isInstalling(): Boolean {
         return installationCard.installationStep != InstallationStep.NOT_INSTALLING

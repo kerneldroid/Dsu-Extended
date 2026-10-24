@@ -10,6 +10,7 @@ import java.util.Locale
 enum class StoredLogType(val slug: String) {
     INSTALLATION("installation"),
     AUTO_MODE("auto_mode"),
+    GSI("gsi"),
     CAT("cat"),
     APP("app"),
     BOOT("boot"),
@@ -97,41 +98,83 @@ object LogsStore {
             .sortedByDescending { it.createdAtMillis }
     }
 
-    fun captureCatExperimental(context: Context): Result<StoredLogEntry> {
+    fun captureGsiLogs(context: Context): Result<StoredLogEntry> {
         return runCatching {
             val isRoot = runCatching { Shell.getShell().isRoot }.getOrDefault(false)
-            val logText = buildCatSnapshotText(isRoot)
+            val content = buildGsiSnapshotText(isRoot)
             writeLog(
                 context = context,
-                type = StoredLogType.CAT,
-                title = "cat_snapshot",
-                content = logText,
+                type = StoredLogType.GSI,
+                title = "gsi_snapshot",
+                content = content,
             )
         }
     }
 
-    private fun buildCatSnapshotText(isRoot: Boolean): String {
+    private fun buildGsiSnapshotText(isRoot: Boolean): String {
         val now = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(Date())
         val builder = StringBuilder()
-        builder.appendLine("DSU Extended Cat Snapshot")
+        builder.appendLine("DSU Extended GSI log snapshot")
         builder.appendLine("generatedAt=$now")
+        builder.appendLine("filter=GSI/DSU-related lines only")
         builder.appendLine("root=$isRoot")
         builder.appendLine()
-        builder.appendLine("=== logcat -d -b all -v threadtime (tail 5000) ===")
-        builder.appendLine(runShell("logcat -d -b all -v threadtime | tail -n 5000"))
+        builder.appendLine("=== GSI / DSU properties ===")
+        listOf(
+            "gsid.image_installed",
+            "ro.gsid.image_running",
+            "ro.boot.dynamic_partitions",
+            "ro.boot.dynamic_partitions_retrofit",
+            "ro.treble.enabled",
+            "ro.vndk.version",
+            "ro.product.cpu.abi",
+            "ro.build.version.sdk",
+        ).forEach { key ->
+            builder.appendLine("$key=${runShell("getprop $key").trim()}")
+        }
+
         builder.appendLine()
-        builder.appendLine("=== app-events (buffered) ===")
-        builder.appendLine(AppLogger.dumpBufferedLogs().ifBlank { "(empty)" })
+        builder.appendLine("=== logcat (filtered GSI/DSU lines) ===")
+        val logcat = filteredOrError(
+            runShell("logcat -d -b main,system,crash -v threadtime -t $MAX_LOGCAT_LINES"),
+        )
+        builder.appendLine(logcat.ifBlank { "(no GSI/DSU-related logcat lines)" })
+
+        builder.appendLine()
+        builder.appendLine("=== /data/gsi ===")
         if (isRoot) {
-            builder.appendLine()
-            builder.appendLine("=== dmesg -T (tail 2000) ===")
-            builder.appendLine(runShell("dmesg -T | tail -n 2000"))
-            builder.appendLine()
-            builder.appendLine("=== /proc/last_kmsg ===")
-            builder.appendLine(runShell("cat /proc/last_kmsg 2>/dev/null"))
-            builder.appendLine()
-            builder.appendLine("=== /sys/fs/pstore/* ===")
-            builder.appendLine(
+            builder.appendLine(runShell("ls -la /data/gsi 2>&1"))
+            builder.appendLine(runShell("du -sh /data/gsi/* 2>&1 | tail -n 50"))
+        } else {
+            builder.appendLine("Root is unavailable; /data/gsi listing skipped.")
+        }
+
+        builder.appendLine()
+        builder.appendLine("=== dmesg (filtered, tail $MAX_KERNEL_LINES) ===")
+        if (isRoot) {
+            val dmesg = filteredKernelOrError(
+                runShell("dmesg -T 2>/dev/null | tail -n $MAX_KERNEL_LINES"),
+            )
+            builder.appendLine(dmesg.ifBlank { "(no GSI/DSU-related kernel lines)" })
+        } else {
+            builder.appendLine("Root is unavailable; dmesg skipped.")
+        }
+
+        builder.appendLine()
+        builder.appendLine("=== /proc/last_kmsg (filtered) ===")
+        if (isRoot) {
+            val lastKmsg = filteredKernelOrError(
+                runShell("cat /proc/last_kmsg 2>/dev/null | tail -n $MAX_KERNEL_LINES"),
+            )
+            builder.appendLine(lastKmsg.ifBlank { "(last_kmsg is unavailable or has no GSI/DSU lines)" })
+        } else {
+            builder.appendLine("Root is unavailable; last_kmsg skipped.")
+        }
+
+        builder.appendLine()
+        builder.appendLine("=== /sys/fs/pstore (filtered) ===")
+        if (isRoot) {
+            val pstore = filteredKernelOrError(
                 runShell(
                     "if [ -d /sys/fs/pstore ]; then " +
                         "for f in /sys/fs/pstore/*; do " +
@@ -140,11 +183,31 @@ object LogsStore {
                         "else echo \"pstore not available\"; fi",
                 ),
             )
+            builder.appendLine(pstore.ifBlank { "(pstore has no GSI/DSU lines)" })
         } else {
-            builder.appendLine()
-            builder.appendLine("Root is unavailable. Kernel/pstore sections were skipped.")
+            builder.appendLine("Root is unavailable; pstore skipped.")
         }
+
+        builder.appendLine()
+        builder.appendLine("=== app events (buffered) ===")
+        builder.appendLine(AppLogger.dumpBufferedLogs().ifBlank { "(empty)" })
         return builder.toString()
+    }
+
+    private fun filteredOrError(raw: String): String {
+        return if (raw.startsWith("stderr:") || raw.startsWith("command failed:")) {
+            raw
+        } else {
+            GsiLogFilter.filter(raw)
+        }
+    }
+
+    private fun filteredKernelOrError(raw: String): String {
+        return if (raw.startsWith("stderr:") || raw.startsWith("command failed:")) {
+            raw
+        } else {
+            GsiLogFilter.filterKernel(raw)
+        }
     }
 
     private fun runShell(command: String): String {
@@ -163,6 +226,9 @@ object LogsStore {
             "command failed: ${it.message}"
         }
     }
+
+    private const val MAX_LOGCAT_LINES = 40000
+    private const val MAX_KERNEL_LINES = 5000
 
     private fun parseFile(file: File): StoredLogEntry {
         val match = filePattern.matchEntire(file.name)

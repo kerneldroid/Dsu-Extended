@@ -191,7 +191,7 @@ private fun ExpressiveLogsContent(
                 } else {
                     stringResource(id = R.string.logs_cat_capture)
                 },
-                onClick = { logsViewModel.captureCatExperimental() },
+                onClick = { logsViewModel.captureGsiLogs() },
                 isEnabled = !uiState.isBusy,
             )
         }
@@ -207,6 +207,7 @@ private fun ExpressiveLogsContent(
                 LogsTypeFilter.ALL to stringResource(id = R.string.logs_filter_type_all),
                 LogsTypeFilter.INSTALLATION to stringResource(id = R.string.logs_filter_type_installation),
                 LogsTypeFilter.AUTO_MODE to stringResource(id = R.string.logs_filter_type_auto),
+                LogsTypeFilter.GSI to stringResource(id = R.string.logs_filter_type_gsi),
                 LogsTypeFilter.CAT to stringResource(id = R.string.logs_filter_type_cat),
             ),
             selected = uiState.typeFilter,
@@ -419,6 +420,7 @@ private fun logTypeLabel(type: StoredLogType): String {
     return when (type) {
         StoredLogType.INSTALLATION -> stringResource(id = R.string.logs_filter_type_installation)
         StoredLogType.AUTO_MODE -> stringResource(id = R.string.logs_filter_type_auto)
+        StoredLogType.GSI -> stringResource(id = R.string.logs_filter_type_gsi)
         StoredLogType.CAT -> stringResource(id = R.string.logs_filter_type_cat)
         StoredLogType.APP -> "App"
         StoredLogType.BOOT -> "Boot"

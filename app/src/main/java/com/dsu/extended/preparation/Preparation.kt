@@ -15,13 +15,13 @@ class Preparation(
     private val onStepUpdate: (step: InstallationStep) -> Unit,
     private val onPreparationProgressUpdate: (progress: Float) -> Unit,
     private val onCanceled: () -> Unit,
-    private val onPreparationFinished: (preparedDSU: DSUInstallationSource) -> Unit,
-) : () -> Unit {
+    private val onPreparationFinished: suspend (preparedDSU: DSUInstallationSource) -> Unit,
+) : suspend () -> Unit {
 
     private val userSelectedImageSize = session.userSelection.userSelectedImageSize
     private val userSelectedFileUri = session.userSelection.selectedFileUri
 
-    override fun invoke() {
+    override suspend fun invoke() {
         if (session.preferences.useBuiltinInstaller && session.isRoot()) {
             prepareRooted()
             return
@@ -29,7 +29,7 @@ class Preparation(
         prepareForDSU()
     }
 
-    private fun prepareRooted() {
+    private suspend fun prepareRooted() {
         val source: DSUInstallationSource = when (getExtension(userSelectedFileUri)) {
             "img" -> {
                 DSUInstallationSource.SingleSystemImage(
@@ -58,7 +58,7 @@ class Preparation(
         }
     }
 
-    private fun prepareForDSU() {
+    private suspend fun prepareForDSU() {
         storageManager.cleanWorkspaceFolder(true)
         val fileExtension = getExtension(userSelectedFileUri)
         val preparedFilePair =

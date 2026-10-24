@@ -10,7 +10,8 @@ Modern, feature-rich DSU (Dynamic System Update) installer for Android. Designed
 - **Root/Shizuku/Dhizuku Support:** Works across various privilege levels.
 - **Expressive UI:** Modern Material 3 Design with fluid animations.
 - **Custom Font Support:** Includes Google Sans Code and Flex integration.
-- **Built-in Diagnostics:** Advanced logcat and system status reporting.
+- **Pre-install compatibility check:** Reads the image, verifies Treble/ABI/SDK/VNDK, storage and partition layout before writing anything, then shows an explicit risk report.
+- **GSI-only diagnostics:** Logs capture DSU/GSI-related logcat and kernel lines instead of the whole system log.
 - **SDK 37 Ready:** Built with the latest Android 17 toolchain.
 
 ## Build Requirements

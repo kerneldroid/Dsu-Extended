@@ -1,7 +1,7 @@
 {
   "identifier": "dsu_extended",
-  "versionCode": 19,
-  "versionName": "1.2.3",
+  "versionCode": 23,
+  "versionName": "1.2.7",
   "apkUrl": "https://github.com/kerneldroid/Dsu-Extended/releases/latest/download/app-release.apk",
   "changelogUrl": "https://github.com/kerneldroid/Dsu-Extended/releases/latest"
 }

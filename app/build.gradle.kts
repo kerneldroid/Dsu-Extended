@@ -24,8 +24,8 @@ extensions.configure<ApplicationExtension>("android") {
 
     defaultConfig {
         applicationId = packageName
-        this.versionCode = 22
-        this.versionName = "1.2.6"
+        this.versionCode = 23
+        this.versionName = "1.2.7"
         val updateCheckUrl =
             (project.findProperty("UPDATE_CHECK_URL") as? String)
                 ?: "https://raw.githubusercontent.com/kerneldroid/Dsu-Extended/master/other/updater.json"
@@ -143,5 +143,6 @@ dependencies {
     implementation("dev.rikka.shizuku:provider:13.1.5")
     implementation("io.github.iamr0s:Dhizuku-API:2.6.0")
     implementation("org.lsposed.hiddenapibypass:hiddenapibypass:6.1")
+    testImplementation("junit:junit:4.13.2")
     compileOnly(project(":hidden-api-stub"))
 }

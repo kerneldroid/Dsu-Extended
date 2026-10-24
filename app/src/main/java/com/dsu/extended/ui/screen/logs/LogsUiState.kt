@@ -6,6 +6,7 @@ enum class LogsTypeFilter {
     ALL,
     INSTALLATION,
     AUTO_MODE,
+    GSI,
     CAT,
 }
 

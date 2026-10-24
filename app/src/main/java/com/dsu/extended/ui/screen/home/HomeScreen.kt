@@ -67,6 +67,7 @@ import com.dsu.extended.ui.screen.Destinations
 import com.dsu.extended.ui.sdialogs.CancelSheet
 import com.dsu.extended.ui.sdialogs.ConfirmInstallationSheet
 import com.dsu.extended.ui.sdialogs.DiscardDSUSheet
+import com.dsu.extended.ui.sdialogs.GsiCompatibilitySheet
 import com.dsu.extended.ui.sdialogs.ImageSizeWarningSheet
 import com.dsu.extended.ui.sdialogs.ViewLogsBottomSheet
 import com.dsu.extended.ui.util.KeepScreenOn
@@ -246,6 +247,16 @@ fun Home(
                 onClickSaveLogs = { homeViewModel.saveLogs(it) },
                 onDismiss = { homeViewModel.dismissSheet() },
             )
+
+        SheetDisplayState.COMPATIBILITY -> {
+            uiState.compatibilityReport?.let { report ->
+                GsiCompatibilitySheet(
+                    report = report,
+                    onContinue = { homeViewModel.onCompatibilityContinue() },
+                    onCancel = { homeViewModel.onCompatibilityCancel() },
+                )
+            }
+        }
 
         SheetDisplayState.NONE -> {}
     }

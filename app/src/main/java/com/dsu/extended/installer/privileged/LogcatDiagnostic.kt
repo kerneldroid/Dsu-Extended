@@ -15,6 +15,7 @@ import com.dsu.extended.model.LogEntry
 import com.dsu.extended.model.LogSeverity
 import com.dsu.extended.preparation.InstallationStep
 import com.dsu.extended.util.CmdRunner
+import com.dsu.extended.util.GsiLogFilter
 
 class LogcatDiagnostic(
     private val onInstallationError: (error: InstallationStep, errorInfo: String) -> Unit,
@@ -57,16 +58,25 @@ class LogcatDiagnostic(
         installationStartTime = System.currentTimeMillis()
 
         Log.d(tag, "startLogging(), logEverything: $shouldLogEverything, isLogging: ${isLogging.get()}")
-        CmdRunner.run("logcat -c")
+        CmdRunner.run("logcat -b main,system,crash -c")
 
         val logCmd =
             if (shouldLogEverything) {
-                "logcat"
+                "logcat -b all"
             } else {
-                "logcat -v tag gsid:* *:S DynamicSystemService:* *:S DynamicSystemInstallationService:* *:S DynSystemInstallationService:* *:S init:* *:S vold:* *:S"
+                "logcat -b main,system,crash -v tag " +
+                    "gsid:V *:S " +
+                    "DynamicSystemService:V *:S " +
+                    "DynamicSystemInstallationService:V *:S " +
+                    "DynSystemInstallationService:V *:S " +
+                    "init:V *:S vold:V *:S"
             }
 
         CmdRunner.runReadEachLine(logCmd) { line ->
+            if (!shouldLogEverything && !GsiLogFilter.shouldInclude(line)) {
+                return@runReadEachLine
+            }
+
             if (logChunks.isEmpty()) {
                 logChunks.clear()
                 logChunks.addLast(buildEnhancedHeader(prependString))
@@ -106,15 +116,16 @@ class LogcatDiagnostic(
     private fun buildEnhancedHeader(prependString: String): String {
         return buildString {
             appendLine("╔═══════════════════════════════════════════════════════════════╗")
-            appendLine("║          DSU EXTENDED INSTALLATION LOG v4.0                   ║")
+            appendLine("║       DSU EXTENDED GSI INSTALLATION LOG v4.1                  ║")
             appendLine("╚═══════════════════════════════════════════════════════════════╝")
             appendLine()
             appendLine("📅 Started: ${dateFormat.format(Date(installationStartTime))}")
+            appendLine("Filter: ${if (shouldLogEverything) "unfiltered logcat" else "GSI/DSU tags only"}")
             appendLine()
             appendLine(prependString)
             appendLine()
             appendLine("═══════════════════════════════════════════════════════════════")
-            appendLine("📋 LIVE LOGS")
+            appendLine(if (shouldLogEverything) "📋 LIVE LOGCAT (UNFILTERED)" else "📋 LIVE GSI LOGS")
             appendLine("═══════════════════════════════════════════════════════════════")
             appendLine()
         }

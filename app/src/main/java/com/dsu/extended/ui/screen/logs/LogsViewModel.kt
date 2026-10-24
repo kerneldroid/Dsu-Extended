@@ -132,16 +132,16 @@ class LogsViewModel @Inject constructor(
         }
     }
 
-    fun captureCatExperimental() {
+    fun captureGsiLogs() {
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isBusy = true) }
-            val result = LogsStore.captureCatExperimental(application)
+            val result = LogsStore.captureGsiLogs(application)
             val message =
                 if (result.isSuccess) {
-                    application.getString(R.string.logs_status_cat_saved)
+                    application.getString(R.string.logs_status_gsi_saved)
                 } else {
                     application.getString(
-                        R.string.logs_status_cat_failed,
+                        R.string.logs_status_gsi_failed,
                         result.exceptionOrNull()?.message ?: "unknown",
                     )
                 }
@@ -166,6 +166,7 @@ class LogsViewModel @Inject constructor(
                 LogsTypeFilter.ALL -> allLogs
                 LogsTypeFilter.INSTALLATION -> allLogs.filter { it.type == StoredLogType.INSTALLATION }
                 LogsTypeFilter.AUTO_MODE -> allLogs.filter { it.type == StoredLogType.AUTO_MODE }
+                LogsTypeFilter.GSI -> allLogs.filter { it.type == StoredLogType.GSI }
                 LogsTypeFilter.CAT -> allLogs.filter { it.type == StoredLogType.CAT || it.type == StoredLogType.BOOT }
             }
         val startOfToday = Calendar.getInstance().apply {

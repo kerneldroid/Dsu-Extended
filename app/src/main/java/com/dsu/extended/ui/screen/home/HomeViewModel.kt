@@ -12,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -19,10 +20,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.dsu.extended.BuildConfig
 import com.dsu.extended.R
+import com.dsu.extended.compat.GsiCompatibilityChecker
 import com.dsu.extended.core.BaseViewModel
 import com.dsu.extended.core.StorageManager
 import com.dsu.extended.installer.adb.AdbInstallationHandler
@@ -76,6 +80,7 @@ class HomeViewModel @Inject constructor(
     private var installationJob: Job? = null
     private var logger: LogcatDiagnostic? = null
     private var lastLogPushRealtimeMs = 0L
+    private var compatibilityDecision: CompletableDeferred<Boolean>? = null
     private val liveUpdateNotifier = InstallationLiveUpdateNotifier(application.applicationContext)
 
     private val allocPercentage = DevicePropUtils.getGsidBinaryAllowedPerc()
@@ -266,6 +271,10 @@ class HomeViewModel @Inject constructor(
     fun obtainSelectedFilename(): String = session.userSelection.selectedFileName
 
     fun onClickCancel() {
+        if (compatibilityDecision != null) {
+            onCompatibilityCancel()
+            return
+        }
         if (uiState.value.isInstalling()) {
             updateSheetState(SheetDisplayState.CANCEL_INSTALLATION)
         }
@@ -303,10 +312,68 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun onPreparationFinished(dsuInstallation: DSUInstallationSource) {
+    private suspend fun onPreparationFinished(dsuInstallation: DSUInstallationSource) {
         AppLogger.i(tag, "Preparation finished", "sourceType" to dsuInstallation.type)
         session.dsuInstallation = dsuInstallation
-        startInstallation()
+
+        updateInstallationCard {
+            it.copy(
+                installationStep = InstallationStep.VALIDATING_IMAGE,
+                installationProgress = 0f,
+                currentPartitionText = "",
+            )
+        }
+        val report = GsiCompatibilityChecker(application, session, storageManager).check(dsuInstallation)
+        AppLogger.i(
+            tag,
+            "GSI compatibility checked",
+            "level" to report.level,
+            "chance" to report.estimatedBootChancePercent,
+            "blockers" to report.blockers.size,
+            "warnings" to report.warnings.size,
+        )
+        _uiState.update { it.copy(compatibilityReport = report) }
+        updateSheetState(SheetDisplayState.COMPATIBILITY)
+
+        val decision = CompletableDeferred<Boolean>()
+        compatibilityDecision = decision
+        val proceed = try {
+            decision.await()
+        } finally {
+            compatibilityDecision = null
+            if (uiState.value.sheetDisplay == SheetDisplayState.COMPATIBILITY) {
+                updateSheetState(SheetDisplayState.NONE)
+            }
+            _uiState.update { it.copy(compatibilityReport = null) }
+        }
+        if (proceed && currentCoroutineContext().isActive) {
+            updateInstallationCard {
+                it.copy(
+                    installationStep = InstallationStep.PROCESSING,
+                    installationProgress = 0f,
+                    currentPartitionText = "",
+                )
+            }
+            startInstallation()
+        } else {
+            cancelPreparedInstallation()
+        }
+    }
+
+    fun onCompatibilityContinue() {
+        compatibilityDecision?.complete(true)
+    }
+
+    fun onCompatibilityCancel() {
+        compatibilityDecision?.complete(false)
+    }
+
+    private fun cancelPreparedInstallation() {
+        setInstallingFlag(false)
+        liveUpdateNotifier.cancel()
+        runCatching { storageManager.cleanWorkspaceFolder(true) }
+        session.dsuInstallation = DSUInstallationSource()
+        resetInstallationCard()
     }
 
     private fun startInstallation() {
@@ -456,6 +523,8 @@ class HomeViewModel @Inject constructor(
 
     fun onClickCancelInstallationButton() {
         persistInstallationSnapshot("installation_canceled")
+        compatibilityDecision?.complete(false)
+        compatibilityDecision = null
         resetInstallationCard()
         serviceBusJob?.cancel()
         runCatching {
@@ -471,6 +540,7 @@ class HomeViewModel @Inject constructor(
 
         installationJob?.cancel()
         installationJob = null
+        runCatching { storageManager.cleanWorkspaceFolder(true) }
         session.dsuInstallation = DSUInstallationSource()
     }
 
@@ -790,6 +860,8 @@ class HomeViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
+        compatibilityDecision?.complete(false)
+        compatibilityDecision = null
         installationJob?.cancel()
         installationJob = null
         logger?.destroy()
