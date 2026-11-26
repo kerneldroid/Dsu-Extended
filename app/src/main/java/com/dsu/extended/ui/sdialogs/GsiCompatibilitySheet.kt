@@ -222,10 +222,17 @@ private fun DetailsCard(report: GsiCompatibilityReport) {
         ImageFileSystem.UNKNOWN -> stringResource(id = R.string.compat_detail_unknown)
     }
     val container = buildString {
-        append(facts.container.name.lowercase())
-        if (facts.sparse) append(" · sparse")
+        append(
+            when (facts.container) {
+                ImageContainer.RAW -> stringResource(id = R.string.compat_container_raw)
+                ImageContainer.GZIP -> "GZIP"
+                ImageContainer.XZ -> "XZ"
+                ImageContainer.ZIP -> "ZIP"
+            },
+        )
+        if (facts.sparse) append(" · " + stringResource(id = R.string.compat_container_sparse))
         if (facts.container == ImageContainer.ZIP && facts.zipImages.isNotEmpty()) {
-            append(" · ${facts.zipImages.size} image(s)")
+            append(" · " + stringResource(id = R.string.compat_container_images, facts.zipImages.size))
         }
     }
 

@@ -78,12 +78,12 @@ class StorageManager(
         }
 
         if (rwPathAllowedByUser.isEmpty()) {
-            throw Exception("Allowed path by user is empty, ask user to allow storage permission again.")
+            throw Exception("用户允许的路径为空，请重新授予存储权限。")
         }
 
         val writeableDir =
             DocumentFile.fromTreeUri(appContext, rwPathAllowedByUser.toUri())
-                ?: throw Exception("Workspace folder cannot be null.")
+                ?: throw Exception("工作目录不能为空。")
 
         workspaceFolder = writeableDir.findFile(Constants.WORKSPACE_FOLDER)
             ?: writeableDir.createDirectory(Constants.WORKSPACE_FOLDER)!!
@@ -117,7 +117,7 @@ class StorageManager(
 
     fun writeStringToExternalFileDir(content: String, filename: String): String {
         val externalFilesDir = appContext.getExternalFilesDir(null)
-            ?: throw IOException("externalFilesDir cannot be null.")
+            ?: throw IOException("externalFilesDir 不能为空。")
         val newFile = File(externalFilesDir.absolutePath + "/$filename")
         if (newFile.exists()) {
             newFile.delete()

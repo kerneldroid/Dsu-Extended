@@ -38,16 +38,16 @@ class SparseStream(input: InputStream) : InputStream() {
             if (headerRead > 0) source.unread(header, 0, headerRead)
             unsparseSize = -1L
         } else {
-            if (headerRead < HEADER_SIZE) throw EOFException("Truncated sparse header")
+            if (headerRead < HEADER_SIZE) throw EOFException("sparse 头部被截断")
             val major = le16(header, 4)
-            if (major > 1) throw IOException("Unsupported sparse version $major")
-            if (le16(header, 8) != HEADER_SIZE) throw IOException("Invalid sparse header size")
-            if (le16(header, 10) != CHUNK_HEADER_SIZE) throw IOException("Invalid sparse chunk header size")
+            if (major > 1) throw IOException("不支持的 sparse 版本：$major")
+            if (le16(header, 8) != HEADER_SIZE) throw IOException("sparse 头部尺寸无效")
+            if (le16(header, 10) != CHUNK_HEADER_SIZE) throw IOException("sparse 数据块头部尺寸无效")
             blockSize = le32(header, 12).toLong() and 0xFFFFFFFFL
-            if (blockSize <= 0L || blockSize % 4L != 0L) throw IOException("Invalid sparse block size")
+            if (blockSize <= 0L || blockSize % 4L != 0L) throw IOException("sparse 块大小无效")
             val totalBlocks = le32(header, 16).toLong() and 0xFFFFFFFFL
             totalChunks = le32(header, 20).toLong() and 0xFFFFFFFFL
-            if (totalBlocks <= 0L || totalChunks <= 0L) throw IOException("Empty sparse image")
+            if (totalBlocks <= 0L || totalChunks <= 0L) throw IOException("sparse 镜像为空")
             unsparseSize = totalBlocks * blockSize
         }
     }
@@ -59,14 +59,14 @@ class SparseStream(input: InputStream) : InputStream() {
 
     override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
         if (length == 0) return 0
-        if (closed) throw IOException("stream closed")
+        if (closed) throw IOException("数据流已关闭")
         if (!isSparse) return source.read(buffer, offset, length)
 
         while (true) {
             if (remaining <= 0L) {
                 if (!nextChunk()) {
                     if (produced < unsparseSize) {
-                        throw EOFException("Sparse image ended early")
+                        throw EOFException("sparse 镜像提前结束")
                     }
                     return -1
                 }
@@ -75,7 +75,7 @@ class SparseStream(input: InputStream) : InputStream() {
             when (chunkType) {
                 CHUNK_RAW -> {
                     val read = source.read(buffer, offset, count)
-                    if (read < 0) throw EOFException("Truncated sparse raw chunk")
+                    if (read < 0) throw EOFException("sparse 原始数据块被截断")
                     remaining -= read
                     produced += read
                     return read
@@ -99,7 +99,7 @@ class SparseStream(input: InputStream) : InputStream() {
                     return count
                 }
 
-                else -> throw IOException("Unsupported sparse chunk type: $chunkType")
+                else -> throw IOException("不支持的 sparse 数据块类型：$chunkType")
             }
         }
     }
@@ -128,7 +128,7 @@ class SparseStream(input: InputStream) : InputStream() {
                     continue
                 }
 
-                else -> throw IOException("Unsupported sparse chunk type: $chunkType")
+                else -> throw IOException("不支持的 sparse 数据块类型：$chunkType")
             }
             if (remaining <= 0L) continue
             return true
@@ -138,11 +138,11 @@ class SparseStream(input: InputStream) : InputStream() {
 
     private fun checkedChunkBytes(chunkBlocks: Long): Long {
         if (blockSize <= 0L || chunkBlocks > Long.MAX_VALUE / blockSize) {
-            throw IOException("Invalid sparse chunk size")
+            throw IOException("sparse 数据块大小无效")
         }
         val bytes = chunkBlocks * blockSize
         if (bytes > unsparseSize - produced) {
-            throw IOException("Sparse chunk exceeds image size")
+            throw IOException("sparse 数据块超出镜像大小")
         }
         return bytes
     }
@@ -152,7 +152,7 @@ class SparseStream(input: InputStream) : InputStream() {
         var read = 0
         while (read < length) {
             val count = source.read(buffer, read, length - read)
-            if (count < 0) throw EOFException("Truncated sparse image")
+            if (count < 0) throw EOFException("sparse 镜像被截断")
             read += count
         }
         return buffer

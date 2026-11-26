@@ -166,7 +166,7 @@ class DSUInstaller(
         }
         AppLogger.i(
             tag,
-            "Partition installed",
+            "分区已安装",
             "partition" to partition,
             "readOnly" to readOnly,
             "partitionSize" to partitionSize,
@@ -211,7 +211,7 @@ class DSUInstaller(
                     // gsid dups the fd on setAshmem; close our copy right away.
                     getFdDup(sharedMemory).use { fdDup ->
                     if (!setAshmem(fdDup, sharedMemory.size.toLong())) {
-                        onInstallationError(InstallationStep.ERROR, "Failed to map installation ashmem")
+                        onInstallationError(InstallationStep.ERROR, "映射安装共享内存失败")
                         installationJob.cancel()
                         return
                     }
@@ -229,7 +229,7 @@ class DSUInstaller(
                         buffer!!.position(0)
                         buffer.put(readBuffer, 0, numBytesRead)
                         if (!submitFromAshmem(numBytesRead.toLong())) {
-                            onInstallationError(InstallationStep.ERROR, "Failed to submit partition chunk")
+                            onInstallationError(InstallationStep.ERROR, "提交分区数据块失败")
                             installationJob.cancel()
                             return
                         }
@@ -248,7 +248,7 @@ class DSUInstaller(
         }
         AppLogger.i(
             tag,
-            "Partition installed",
+            "分区已安装",
             "partition" to partition,
             "readOnly" to readOnly,
             "partitionSize" to partitionSize,
@@ -314,7 +314,7 @@ class DSUInstaller(
         }
         forceStopDSU()
         if (!startInstallation(Constants.DEFAULT_SLOT)) {
-            onInstallationError(InstallationStep.ERROR, "Failed to start DSU installation session")
+            onInstallationError(InstallationStep.ERROR, "启动 DSU 安装会话失败")
             return
         }
         installSessionStarted = true
@@ -351,7 +351,7 @@ class DSUInstaller(
         }
         if (!installationJob.isCancelled) {
             if (!finishInstallation()) {
-                onInstallationError(InstallationStep.ERROR, "finishInstallation() returned false")
+                onInstallationError(InstallationStep.ERROR, "finishInstallation() 返回了 false")
                 return
             }
             AppLogger.i(tag, "Installation finished successfully")
@@ -384,7 +384,7 @@ class DSUInstaller(
 
     fun openInputStream(uri: Uri): InputStream {
         return requireNotNull(application.contentResolver.openInputStream(uri)) {
-            "Unable to open input stream for uri: $uri"
+            "无法为该 URI 打开输入流：$uri"
         }
     }
 
@@ -409,10 +409,10 @@ class DSUInstaller(
 
     override fun invoke() {
         runCatching { startInstallation() }.onFailure {
-            AppLogger.e(tag, "Unexpected installer failure", it)
+            AppLogger.e(tag, "安装器发生意外失败", it)
             onInstallationError(
                 InstallationStep.ERROR,
-                it.message ?: "Unexpected installer failure",
+                it.message ?: "安装器发生意外失败",
             )
         }
     }

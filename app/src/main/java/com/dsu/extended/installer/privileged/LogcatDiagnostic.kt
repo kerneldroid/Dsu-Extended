@@ -105,7 +105,7 @@ class LogcatDiagnostic(
             if (line.contains("DynamicSystemService") && line.contains("startInstallation")) {
                 onStepUpdate(InstallationStep.INSTALLING)
                 onInstallationProgressUpdate(0F, "userdata")
-                addInfoLog("Installation started", "DynamicSystemService")
+                addInfoLog("安装已开始", "DynamicSystemService")
             }
 
             // Enhanced error detection with detailed diagnostics
@@ -116,16 +116,16 @@ class LogcatDiagnostic(
     private fun buildEnhancedHeader(prependString: String): String {
         return buildString {
             appendLine("╔═══════════════════════════════════════════════════════════════╗")
-            appendLine("║       DSU EXTENDED GSI INSTALLATION LOG v4.1                  ║")
+            appendLine("║       DSU EXTENDED GSI 安装日志 v4.1                          ║")
             appendLine("╚═══════════════════════════════════════════════════════════════╝")
             appendLine()
-            appendLine("📅 Started: ${dateFormat.format(Date(installationStartTime))}")
-            appendLine("Filter: ${if (shouldLogEverything) "unfiltered logcat" else "GSI/DSU tags only"}")
+            appendLine("📅 开始时间：${dateFormat.format(Date(installationStartTime))}")
+            appendLine("过滤规则：${if (shouldLogEverything) "无过滤 logcat" else "仅 GSI/DSU 相关标签"}")
             appendLine()
             appendLine(prependString)
             appendLine()
             appendLine("═══════════════════════════════════════════════════════════════")
-            appendLine(if (shouldLogEverything) "📋 LIVE LOGCAT (UNFILTERED)" else "📋 LIVE GSI LOGS")
+            appendLine(if (shouldLogEverything) "📋 实时 LOGCAT（无过滤）" else "📋 实时 GSI 日志")
             appendLine("═══════════════════════════════════════════════════════════════")
             appendLine()
         }
@@ -186,7 +186,7 @@ class LogcatDiagnostic(
         if (line.contains("We are already running in DynamicSystem")) {
             handleError(
                 InstallationStep.ERROR_ALREADY_RUNNING_DYN_OS,
-                "Cannot install DSU while running a Dynamic System",
+                "正在运行动态系统时无法安装 DSU",
                 ErrorSeverity.ERROR,
             )
             return
@@ -199,12 +199,12 @@ class LogcatDiagnostic(
                 line,
                 ErrorSeverity.ERROR,
                 listOf(
-                    "SELinux is blocking SD card access",
-                    "gsid cannot allocate to external storage",
+                    "SELinux 正在阻止访问 SD 卡",
+                    "gsid 无法在外部存储上分配空间",
                 ),
                 listOf(
-                    "Enable 'Unmount SD' option and retry",
-                    "Install Magisk module with sepolicy fixes",
+                    "请启用「卸载 SD 卡」选项后重试",
+                    "安装带有 sepolicy 修复的 Magisk 模块",
                 ),
             )
             return
@@ -216,10 +216,10 @@ class LogcatDiagnostic(
                 InstallationStep.ERROR_NO_AVAIL_STORAGE,
                 line,
                 ErrorSeverity.ERROR,
-                listOf("Insufficient free storage for DSU allocation"),
+                listOf("可用存储空间不足，无法为 DSU 分配"),
                 listOf(
-                    "Free up storage space on device",
-                    "Delete unused apps and files",
+                    "请释放设备存储空间",
+                    "删除不常用的应用和文件",
                 ),
             )
             return
@@ -234,14 +234,14 @@ class LogcatDiagnostic(
                 InstallationStep.ERROR_F2FS_WRONG_PATH,
                 line,
                 ErrorSeverity.ERROR,
-                listOf("Kernel registers f2fs as f2fs_dev instead of f2fs"),
+                listOf("内核将 f2fs 注册为 f2fs_dev 而不是 f2fs"),
                 listOf(
                     if (Build.VERSION.SDK_INT >= 35) {
-                        "Use a custom gsid build that includes the A15/A16 f2fs_dev fallback patch"
+                        "使用包含 A15/A16 f2fs_dev 回退补丁的自定义 gsid 构建"
                     } else {
-                        "Install Magisk module with custom gsid binary"
+                        "安装包含自定义 gsid 二进制的 Magisk 模块"
                     },
-                    "Use a kernel with correct f2fs registration",
+                    "使用能正确注册 f2fs 的内核",
                 ),
             )
             return
@@ -255,10 +255,10 @@ class LogcatDiagnostic(
                 InstallationStep.ERROR_SELINUX,
                 line,
                 ErrorSeverity.ERROR,
-                listOf("SELinux denying access to block device"),
+                listOf("SELinux 拒绝访问块设备"),
                 listOf(
-                    "Run: setenforce 0 (requires root)",
-                    "Install Magisk module with sepolicy fixes",
+                    "执行：setenforce 0（需要 Root）",
+                    "安装带有 sepolicy 修复的 Magisk 模块",
                 ),
             )
             return
@@ -270,10 +270,10 @@ class LogcatDiagnostic(
                 InstallationStep.ERROR_EXTENTS,
                 line,
                 ErrorSeverity.ERROR,
-                listOf("Storage too fragmented for allocation"),
+                listOf("存储过于碎片化，无法分配"),
                 listOf(
-                    "Install Magisk module with higher extent limit",
-                    "Try after freeing storage and rebooting",
+                    "安装提高 extent 上限的 Magisk 模块",
+                    "请释放空间并重启后重试",
                 ),
             )
             return
@@ -299,13 +299,13 @@ class LogcatDiagnostic(
                 line,
                 ErrorSeverity.CRITICAL,
                 listOf(
-                    "AVB (Android Verified Boot) verification failed",
-                    "dm-verity is blocking the GSI boot",
+                    "AVB（Android Verified Boot）校验失败",
+                    "dm-verity 正在阻止 GSI 启动",
                 ),
                 listOf(
-                    "Flash disabled vbmeta image",
-                    "Run: fastboot flash vbmeta vbmeta_disabled.img --disable-verity --disable-verification",
-                    "See: https://developer.android.com/topic/generic-system-image#flash-gsi",
+                    "刷入已禁用校验的 vbmeta 镜像",
+                    "执行：fastboot flash vbmeta vbmeta_disabled.img --disable-verity --disable-verification",
+                    "参见：https://developer.android.com/topic/generic-system-image#flash-gsi",
                 ),
             )
             return
@@ -320,12 +320,12 @@ class LogcatDiagnostic(
                 line,
                 ErrorSeverity.CRITICAL,
                 listOf(
-                    "Kernel panic detected - GSI may be incompatible",
-                    "Kernel version mismatch between GSI and device",
+                    "检测到内核崩溃——GSI 可能不兼容",
+                    "GSI 与设备的内核版本不匹配",
                 ),
                 listOf(
-                    "Try a different GSI built for your kernel version",
-                    "Check GSI compatibility with your device",
+                    "请尝试为您的内核版本构建的其他 GSI",
+                    "请检查 GSI 与您设备的兼容性",
                 ),
             )
             return
@@ -339,10 +339,10 @@ class LogcatDiagnostic(
                 InstallationStep.ERROR_VENDOR_MISMATCH,
                 line,
                 ErrorSeverity.ERROR,
-                listOf("Vendor image incompatible with this GSI"),
+                listOf("vendor 镜像与此 GSI 不兼容"),
                 listOf(
-                    "Ensure GSI matches your vendor VNDK version",
-                    "Try a GSI built for your Android version",
+                    "请确保 GSI 与您的 vendor VNDK 版本匹配",
+                    "请尝试为您的 Android 版本构建的 GSI",
                 ),
             )
             return
@@ -356,10 +356,10 @@ class LogcatDiagnostic(
                 InstallationStep.ERROR_SUPER_PARTITION,
                 line,
                 ErrorSeverity.ERROR,
-                listOf("Super partition operation failed"),
+                listOf("Super 分区操作失败"),
                 listOf(
-                    "Device may not properly support Dynamic Partitions",
-                    "Try with more free storage space",
+                    "设备可能无法正确支持动态分区",
+                    "请在可用空间更多时重试",
                 ),
             )
             return
@@ -373,10 +373,10 @@ class LogcatDiagnostic(
                 InstallationStep.ERROR_SYSTEM_SERVER_CRASH,
                 line,
                 ErrorSeverity.ERROR,
-                listOf("System server crashed during boot"),
+                listOf("系统服务在启动过程中崩溃"),
                 listOf(
-                    "GSI may have compatibility issues with your device",
-                    "Try a more stable GSI build",
+                    "该 GSI 可能与您的设备存在兼容性问题",
+                    "请尝试更稳定的 GSI 构建",
                 ),
             )
             return
@@ -390,10 +390,10 @@ class LogcatDiagnostic(
                 InstallationStep.ERROR_VNDK_MISMATCH,
                 line,
                 ErrorSeverity.ERROR,
-                listOf("VNDK version mismatch detected"),
+                listOf("检测到 VNDK 版本不匹配"),
                 listOf(
-                    "Check your device's VNDK version: getprop ro.vndk.version",
-                    "Use a GSI matching your VNDK version",
+                    "检查设备的 VNDK 版本：getprop ro.vndk.version",
+                    "请使用与您 VNDK 版本匹配的 GSI",
                 ),
             )
             return
@@ -422,7 +422,7 @@ class LogcatDiagnostic(
 
         // Success detection
         if (line.contains("READY") && line.contains("INSTALL_COMPLETED")) {
-            addInfoLog("Installation completed successfully!", "DynamicSystemService")
+            addInfoLog("安装成功完成！", "DynamicSystemService")
             generateFinalDiagnosticReport(true)
             onInstallationSuccess()
             destroy()
@@ -440,7 +440,7 @@ class LogcatDiagnostic(
         }
 
         if (line.contains("postStatus(): statusCode=3")) {
-            addInfoLog("Installation completed successfully!", "DynSystemInstallationService")
+            addInfoLog("安装成功完成！", "DynSystemInstallationService")
             generateFinalDiagnosticReport(true)
             onInstallationSuccess()
             destroy()
@@ -465,21 +465,21 @@ class LogcatDiagnostic(
             timestamp = System.currentTimeMillis(),
             severity = LogSeverity.ERROR,
             tag = "DsuExtended",
-            message = "ERROR: ${step.name}",
+            message = "错误：${step.name}",
             source = "error_handler",
         )
         logEntries.add(errorEntry)
         logChunks.addLast("\n${formatLogLine(errorEntry)}\n")
 
         if (possibleCauses.isNotEmpty()) {
-            logChunks.addLast("┌─ Possible causes:\n")
+            logChunks.addLast("┌─ 可能的原因：\n")
             possibleCauses.forEach { cause ->
                 logChunks.addLast("│  • $cause\n")
             }
         }
 
         if (suggestions.isNotEmpty()) {
-            logChunks.addLast("├─ Suggestions:\n")
+            logChunks.addLast("├─ 建议：\n")
             suggestions.forEach { suggestion ->
                 logChunks.addLast("│  💡 $suggestion\n")
             }
@@ -515,18 +515,18 @@ class LogcatDiagnostic(
         // Append diagnostic summary to logs
         logChunks.addLast("\n")
         logChunks.addLast("═══════════════════════════════════════════════════════════════\n")
-        logChunks.addLast("📊 DIAGNOSTIC SUMMARY\n")
+        logChunks.addLast("📊 诊断摘要\n")
         logChunks.addLast("═══════════════════════════════════════════════════════════════\n")
-        logChunks.addLast("Status: ${if (wasSuccessful) "✅ SUCCESS" else "❌ FAILED"}\n")
-        logChunks.addLast("Duration: ${(System.currentTimeMillis() - installationStartTime) / 1000}s\n")
+        logChunks.addLast("状态：${if (wasSuccessful) "✅ 成功" else "❌ 失败"}\n")
+        logChunks.addLast("耗时：${(System.currentTimeMillis() - installationStartTime) / 1000}s\n")
 
         if (!wasSuccessful && report.errorAnalysis != null) {
-            logChunks.addLast("Error Type: ${report.errorAnalysis.errorType}\n")
-            logChunks.addLast("Severity: ${report.errorAnalysis.severity.emoji} ${report.errorAnalysis.severity.name}\n")
+            logChunks.addLast("错误类型：${report.errorAnalysis.errorType}\n")
+            logChunks.addLast("严重程度：${report.errorAnalysis.severity.emoji} ${report.errorAnalysis.severity.name}\n")
         }
 
         if (report.suggestions.isNotEmpty()) {
-            logChunks.addLast("\n💡 SUGGESTIONS:\n")
+            logChunks.addLast("\n💡 建议：\n")
             report.suggestions.forEachIndexed { index, suggestion ->
                 logChunks.addLast("${index + 1}. $suggestion\n")
             }

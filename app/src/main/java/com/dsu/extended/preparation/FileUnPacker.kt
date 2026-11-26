@@ -63,7 +63,7 @@ class FileUnPacker(
                     endsWith("xz") -> XZCompressorInputStream(inputStream)
                     endsWith("gz") -> GzipCompressorInputStream(inputStream)
                     endsWith("gzip") -> GzipCompressorInputStream(inputStream)
-                    else -> throw Exception("File type not supported")
+                    else -> throw Exception("不支持该文件类型")
                 }
             }
         copy(archiveInputStream, outputStream) {

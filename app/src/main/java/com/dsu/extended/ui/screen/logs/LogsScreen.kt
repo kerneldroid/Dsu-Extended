@@ -422,8 +422,8 @@ private fun logTypeLabel(type: StoredLogType): String {
         StoredLogType.AUTO_MODE -> stringResource(id = R.string.logs_filter_type_auto)
         StoredLogType.GSI -> stringResource(id = R.string.logs_filter_type_gsi)
         StoredLogType.CAT -> stringResource(id = R.string.logs_filter_type_cat)
-        StoredLogType.APP -> "App"
-        StoredLogType.BOOT -> "Boot"
+        StoredLogType.APP -> stringResource(id = R.string.logs_type_app)
+        StoredLogType.BOOT -> stringResource(id = R.string.logs_type_boot)
         StoredLogType.OTHER -> stringResource(id = R.string.logs_filter_type_all)
     }
 }

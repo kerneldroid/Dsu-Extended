@@ -74,7 +74,7 @@ class ChannelSeekableSource(
             }
 
             override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
-                if (closed) throw IOException("stream closed")
+                if (closed) throw IOException("数据流已关闭")
                 if (length == 0) return 0
                 val target = ByteBuffer.wrap(buffer, offset, length)
                 return channel.read(target)

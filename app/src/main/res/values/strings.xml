@@ -492,4 +492,100 @@
     <string name="compat_issue_build_type_title">Test build</string>
     <string name="compat_issue_build_type_detail">The GSI is a %1$s build. Test builds can be less stable than user builds.</string>
 
+    <!-- Boot diagnostic errors (installation card) -->
+    <string name="boot_err_avb_title">AVB Verification Failed</string>
+    <string name="boot_err_avb_detail">Android Verified Boot is blocking the GSI. You need to disable AVB verification.</string>
+    <string name="boot_err_avb_suggestion">Flash disabled vbmeta:\nfastboot flash vbmeta vbmeta_disabled.img --disable-verity --disable-verification</string>
+
+    <string name="boot_err_partition_table_title">Partition Table Error</string>
+    <string name="boot_err_partition_table_detail">Failed to read or modify partition table. Device may not properly support Dynamic Partitions.</string>
+    <string name="boot_err_partition_table_suggestion">Use a patched gsid build for your Android version</string>
+
+    <string name="boot_err_gsi_incompatible_title">GSI Incompatible</string>
+    <string name="boot_err_gsi_incompatible_detail">The selected GSI is not compatible with your device. Check architecture and VNDK version.</string>
+    <string name="boot_err_gsi_incompatible_suggestion">Use a GSI matching your device\'s: CPU architecture, Android version, VNDK version</string>
+
+    <string name="boot_err_kernel_title">Kernel Panic / Mismatch</string>
+    <string name="boot_err_kernel_detail">The kernel detected a critical error. GSI may be incompatible with your device\'s kernel.</string>
+    <string name="boot_err_kernel_suggestion">Try a different GSI built for your kernel version</string>
+
+    <string name="boot_err_bootloop_title">Bootloop Detected</string>
+    <string name="boot_err_bootloop_detail">The system is rebooting repeatedly. GSI failed to boot properly.</string>
+    <string name="boot_err_bootloop_suggestion">1. Try a different GSI\n2. Check if bootloader is unlocked\n3. Verify VNDK compatibility</string>
+
+    <string name="boot_err_ram_title">Insufficient RAM</string>
+    <string name="boot_err_ram_detail">Your device may not have enough RAM to run the selected GSI.</string>
+    <string name="boot_err_ram_suggestion">Try a lighter GSI (Go edition or minimal builds)</string>
+
+    <string name="boot_err_vendor_title">Vendor Mismatch</string>
+    <string name="boot_err_vendor_detail">The GSI is incompatible with your device\'s vendor image.</string>
+    <string name="boot_err_vendor_suggestion">Use a GSI built for your Android version and VNDK level</string>
+
+    <string name="boot_err_dm_verity_title">dm-verity Error</string>
+    <string name="boot_err_dm_verity_detail">Verified boot subsystem is blocking the GSI.</string>
+    <string name="boot_err_dm_verity_suggestion">Flash disabled vbmeta with --disable-verity flag</string>
+
+    <string name="boot_err_system_server_title">System Server Crash</string>
+    <string name="boot_err_system_server_detail">Android system server crashed during boot. GSI may have compatibility issues.</string>
+    <string name="boot_err_system_server_suggestion">Try a more stable GSI build from trusted sources</string>
+
+    <string name="boot_err_boot_timeout_title">Boot Timeout</string>
+    <string name="boot_err_boot_timeout_detail">The system took too long to boot. GSI may be stuck or incompatible.</string>
+    <string name="boot_err_boot_timeout_suggestion">Wait longer on first boot, or try a different GSI</string>
+
+    <string name="boot_err_super_title">Super Partition Error</string>
+    <string name="boot_err_super_detail">Failed to operate on the super partition.</string>
+    <string name="boot_err_super_suggestion">Ensure device properly supports Dynamic Partitions</string>
+
+    <string name="boot_err_slot_switch_title">Slot Switch Error</string>
+    <string name="boot_err_slot_switch_detail">Failed to switch boot slot for DSU.</string>
+
+    <string name="boot_err_firmware_title">Firmware Mismatch</string>
+    <string name="boot_err_firmware_detail">Device firmware is incompatible with the GSI.</string>
+    <string name="boot_err_firmware_suggestion">Update your device firmware to the latest version</string>
+
+    <string name="boot_err_treble_title">Treble Incompatible</string>
+    <string name="boot_err_treble_detail">Your device may not be Treble-compliant or has incorrect Treble implementation.</string>
+    <string name="boot_err_treble_suggestion">Check Treble compliance with Treble Info app</string>
+
+    <string name="boot_err_vndk_title">VNDK Version Mismatch</string>
+    <string name="boot_err_vndk_detail">The GSI\'s VNDK version doesn\'t match your device.</string>
+    <string name="boot_err_vndk_suggestion">Check your VNDK: getprop ro.vndk.version\nUse GSI with matching VNDK</string>
+
+    <string name="boot_err_cpu_arch_title">CPU Architecture Mismatch</string>
+    <string name="boot_err_cpu_arch_detail">The GSI is built for a different CPU architecture.</string>
+    <string name="boot_err_cpu_arch_suggestion">Use GSI matching your device architecture (arm64-v8a, armeabi-v7a, etc.)</string>
+
+    <string name="boot_err_unknown_title">Unknown Boot Failure</string>
+    <string name="boot_err_unknown_detail">An unidentified error occurred during boot. Check logs for details.</string>
+    <string name="boot_err_unknown_suggestion">Review logs and search for your device + GSI on XDA forums</string>
+
+    <!-- Widget -->
+    <string name="widget_installing_title">Installing GSI</string>
+    <string name="widget_installing_subtitle">Do not close the app</string>
+    <string name="widget_running_title">Running DSU</string>
+    <string name="widget_running_subtitle">Dynamic System active</string>
+    <string name="widget_installed_title">GSI Installed</string>
+    <string name="widget_installed_subtitle">Ready to boot</string>
+    <string name="widget_not_installed_title">Not installed</string>
+    <string name="widget_not_installed_subtitle">No GSI image staged</string>
+    <string name="widget_reboot">Reboot</string>
+
+    <!-- Misc UI -->
+    <string name="state_success">Success!</string>
+    <string name="state_error">Error</string>
+    <string name="inspector_empty_hint">Nothing here...</string>
+    <string name="logs_type_app">App</string>
+    <string name="logs_type_boot">Boot</string>
+    <string name="compat_container_sparse">sparse</string>
+    <string name="compat_container_raw">raw image</string>
+    <string name="logs_title_gsi_snapshot">GSI snapshot</string>
+    <string name="compat_container_images">%1$d image(s)</string>
+    <string name="privileged_none_available">None available</string>
+    <string name="privileged_available_via">Available via: %1$s</string>
+    <string name="role_main_developer">Main Developer</string>
+    <string name="role_original_fork_author">Original Fork Author</string>
+    <string name="role_dsu_sideloader_author">DSU-Sideloader-Plus author</string>
+    <string name="icon_desc">Icon</string>
+
 </resources>

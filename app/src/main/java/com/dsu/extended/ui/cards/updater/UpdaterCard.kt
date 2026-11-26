@@ -182,7 +182,7 @@ fun UpdaterCard(
                                     .clickable { onClickImage() },
                                 painter = painterResource(id = R.drawable.app_icon_mono),
                                 tint = MaterialTheme.colorScheme.primary,
-                                contentDescription = "App icon",
+                                contentDescription = stringResource(id = R.string.icon_desc),
                             )
                         }
                     }

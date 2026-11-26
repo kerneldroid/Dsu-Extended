@@ -193,7 +193,7 @@ private fun ReadyPanel(
             item(key = "files_empty") {
                 SimpleCard {
                     Text(
-                        text = "(\u00AF\u25E1\u00AF)\u30CE \u30B8 Nothing here...",
+                        text = stringResource(id = R.string.inspector_empty_hint),
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
