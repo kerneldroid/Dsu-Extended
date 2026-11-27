@@ -12,9 +12,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.dsu.extended.R
 
 @Composable
 fun DialogItem(
@@ -30,7 +32,7 @@ fun DialogItem(
                 .padding(end = 6.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             imageVector = icon,
-            contentDescription = "Icon",
+            contentDescription = stringResource(id = R.string.icon_desc),
         )
         Column(Modifier.padding(4.dp)) {
             Text(

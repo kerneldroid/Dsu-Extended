@@ -52,8 +52,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.dsu.extended.R
 import com.dsu.extended.ui.components.buttons.PrimaryButton
 import com.dsu.extended.ui.components.buttons.SecondaryButton
 import com.dsu.extended.ui.components.ExpressiveIndeterminateLoadingBar
@@ -195,7 +197,11 @@ fun ProgressableCardContent(
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(
-                    text = if (showSuccess) "Success!" else "Error",
+                    text = if (showSuccess) {
+                        stringResource(id = R.string.state_success)
+                    } else {
+                        stringResource(id = R.string.state_error)
+                    },
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = if (showSuccess) successContentColor else errorContentColor,

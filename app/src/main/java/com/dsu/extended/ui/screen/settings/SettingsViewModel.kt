@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.dsu.extended.core.BaseViewModel
+import com.dsu.extended.R
 import com.dsu.extended.model.Session
 import com.dsu.extended.preferences.AppPrefs
 import com.dsu.extended.ui.theme.AppFontPreset
@@ -197,7 +198,11 @@ class SettingsViewModel @Inject constructor(
         val shizuku = if (uiState.value.hasShizukuAccess) "Shizuku" else ""
         val dhizuku = if (uiState.value.hasDhizukuAccess) "Dhizuku" else ""
         val available = listOf(root, shizuku, dhizuku).filter { it.isNotEmpty() }.joinToString(", ")
-        return if (available.isEmpty()) "None available" else "Available via: $available"
+        return if (available.isEmpty()) {
+            application.getString(R.string.privileged_none_available)
+        } else {
+            application.getString(R.string.privileged_available_via, available)
+        }
     }
 
     fun runCheckAll() {

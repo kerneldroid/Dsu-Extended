@@ -22,7 +22,7 @@ class ScanBudget(val maxDurationMillis: Long = DEFAULT_MAX_DURATION_MS) {
         if (isExpired) throw ExpiredException()
     }
 
-    class ExpiredException : IOException("Image analysis budget exceeded")
+    class ExpiredException : IOException("镜像分析超出时间预算")
 
     companion object {
         const val DEFAULT_MAX_DURATION_MS = 20_000L

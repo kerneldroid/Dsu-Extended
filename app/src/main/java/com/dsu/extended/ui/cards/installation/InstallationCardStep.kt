@@ -289,122 +289,122 @@ fun InstallationCardStep(
         // NEW: Enhanced boot diagnostic errors
         InstallationStep.ERROR_AVB_VERIFICATION ->
             ProgressableCardContent(
-                text = "AVB Verification Failed\n\nAndroid Verified Boot is blocking the GSI. You need to disable AVB verification.",
+                text = stringResource(id = R.string.boot_err_avb_title) + "\n\n" + stringResource(id = R.string.boot_err_avb_detail),
                 textFirstButton = stringResource(id = R.string.view_logs),
                 onClickFirstButton = onClickViewLogs,
                 textSecondButton = stringResource(id = R.string.mreturn),
                 onClickSecondButton = onClickClear,
                 showError = true,
-                suggestion = "Flash disabled vbmeta:\nfastboot flash vbmeta vbmeta_disabled.img --disable-verity --disable-verification",
+                suggestion = stringResource(id = R.string.boot_err_avb_suggestion),
             )
         InstallationStep.ERROR_PARTITION_TABLE ->
             ProgressableCardContent(
-                text = "Partition Table Error\n\nFailed to read or modify partition table. Device may not properly support Dynamic Partitions.",
+                text = stringResource(id = R.string.boot_err_partition_table_title) + "\n\n" + stringResource(id = R.string.boot_err_partition_table_detail),
                 textFirstButton = stringResource(id = R.string.view_logs),
                 onClickFirstButton = onClickViewLogs,
                 textSecondButton = stringResource(id = R.string.mreturn),
                 onClickSecondButton = onClickClear,
                 showError = true,
-                suggestion = "Use a patched gsid build for your Android version",
+                suggestion = stringResource(id = R.string.boot_err_partition_table_suggestion),
             )
         InstallationStep.ERROR_GSI_INCOMPATIBLE ->
             ProgressableCardContent(
                 text =
                 if (uiState.errorText.isNotEmpty()) {
-                    "GSI Incompatible\n\n${uiState.errorText}"
+                    stringResource(id = R.string.boot_err_gsi_incompatible_title) + "\n\n" + uiState.errorText
                 } else {
-                    "GSI Incompatible\n\nThe selected GSI is not compatible with your device. Check architecture and VNDK version."
+                    stringResource(id = R.string.boot_err_gsi_incompatible_title) + "\n\n" + stringResource(id = R.string.boot_err_gsi_incompatible_detail)
                 },
                 textFirstButton = stringResource(id = R.string.view_logs),
                 onClickFirstButton = onClickViewLogs,
                 textSecondButton = stringResource(id = R.string.mreturn),
                 onClickSecondButton = onClickClear,
                 showError = true,
-                suggestion = "Use a GSI matching your device's: CPU architecture, Android version, VNDK version",
+                suggestion = stringResource(id = R.string.boot_err_gsi_incompatible_suggestion),
             )
         InstallationStep.ERROR_KERNEL_MISMATCH ->
             ProgressableCardContent(
-                text = "Kernel Panic / Mismatch\n\nThe kernel detected a critical error. GSI may be incompatible with your device's kernel.",
+                text = stringResource(id = R.string.boot_err_kernel_title) + "\n\n" + stringResource(id = R.string.boot_err_kernel_detail),
                 textFirstButton = stringResource(id = R.string.view_logs),
                 onClickFirstButton = onClickViewLogs,
                 textSecondButton = stringResource(id = R.string.mreturn),
                 onClickSecondButton = onClickClear,
                 showError = true,
-                suggestion = "Try a different GSI built for your kernel version",
+                suggestion = stringResource(id = R.string.boot_err_kernel_suggestion),
             )
         InstallationStep.ERROR_BOOTLOOP_DETECTED ->
             ProgressableCardContent(
-                text = "Bootloop Detected\n\nThe system is rebooting repeatedly. GSI failed to boot properly.",
+                text = stringResource(id = R.string.boot_err_bootloop_title) + "\n\n" + stringResource(id = R.string.boot_err_bootloop_detail),
                 textFirstButton = stringResource(id = R.string.view_logs),
                 onClickFirstButton = onClickViewLogs,
                 textSecondButton = stringResource(id = R.string.mreturn),
                 onClickSecondButton = onClickClear,
                 showError = true,
-                suggestion = "1. Try a different GSI\n2. Check if bootloader is unlocked\n3. Verify VNDK compatibility",
+                suggestion = stringResource(id = R.string.boot_err_bootloop_suggestion),
             )
         InstallationStep.ERROR_INSUFFICIENT_RAM ->
             ProgressableCardContent(
-                text = "Insufficient RAM\n\nYour device may not have enough RAM to run the selected GSI.",
+                text = stringResource(id = R.string.boot_err_ram_title) + "\n\n" + stringResource(id = R.string.boot_err_ram_detail),
                 textFirstButton = stringResource(id = R.string.view_logs),
                 onClickFirstButton = onClickViewLogs,
                 textSecondButton = stringResource(id = R.string.mreturn),
                 onClickSecondButton = onClickClear,
                 showError = true,
-                suggestion = "Try a lighter GSI (Go edition or minimal builds)",
+                suggestion = stringResource(id = R.string.boot_err_ram_suggestion),
             )
         InstallationStep.ERROR_VENDOR_MISMATCH ->
             ProgressableCardContent(
-                text = "Vendor Mismatch\n\nThe GSI is incompatible with your device's vendor image.",
+                text = stringResource(id = R.string.boot_err_vendor_title) + "\n\n" + stringResource(id = R.string.boot_err_vendor_detail),
                 textFirstButton = stringResource(id = R.string.view_logs),
                 onClickFirstButton = onClickViewLogs,
                 textSecondButton = stringResource(id = R.string.mreturn),
                 onClickSecondButton = onClickClear,
                 showError = true,
-                suggestion = "Use a GSI built for your Android version and VNDK level",
+                suggestion = stringResource(id = R.string.boot_err_vendor_suggestion),
             )
         InstallationStep.ERROR_DM_VERITY ->
             ProgressableCardContent(
-                text = "dm-verity Error\n\nVerified boot subsystem is blocking the GSI.",
+                text = stringResource(id = R.string.boot_err_dm_verity_title) + "\n\n" + stringResource(id = R.string.boot_err_dm_verity_detail),
                 textFirstButton = stringResource(id = R.string.view_logs),
                 onClickFirstButton = onClickViewLogs,
                 textSecondButton = stringResource(id = R.string.mreturn),
                 onClickSecondButton = onClickClear,
                 showError = true,
-                suggestion = "Flash disabled vbmeta with --disable-verity flag",
+                suggestion = stringResource(id = R.string.boot_err_dm_verity_suggestion),
             )
         InstallationStep.ERROR_SYSTEM_SERVER_CRASH ->
             ProgressableCardContent(
-                text = "System Server Crash\n\nAndroid system server crashed during boot. GSI may have compatibility issues.",
+                text = stringResource(id = R.string.boot_err_system_server_title) + "\n\n" + stringResource(id = R.string.boot_err_system_server_detail),
                 textFirstButton = stringResource(id = R.string.view_logs),
                 onClickFirstButton = onClickViewLogs,
                 textSecondButton = stringResource(id = R.string.mreturn),
                 onClickSecondButton = onClickClear,
                 showError = true,
-                suggestion = "Try a more stable GSI build from trusted sources",
+                suggestion = stringResource(id = R.string.boot_err_system_server_suggestion),
             )
         InstallationStep.ERROR_BOOT_TIMEOUT ->
             ProgressableCardContent(
-                text = "Boot Timeout\n\nThe system took too long to boot. GSI may be stuck or incompatible.",
+                text = stringResource(id = R.string.boot_err_boot_timeout_title) + "\n\n" + stringResource(id = R.string.boot_err_boot_timeout_detail),
                 textFirstButton = stringResource(id = R.string.view_logs),
                 onClickFirstButton = onClickViewLogs,
                 textSecondButton = stringResource(id = R.string.mreturn),
                 onClickSecondButton = onClickClear,
                 showError = true,
-                suggestion = "Wait longer on first boot, or try a different GSI",
+                suggestion = stringResource(id = R.string.boot_err_boot_timeout_suggestion),
             )
         InstallationStep.ERROR_SUPER_PARTITION ->
             ProgressableCardContent(
-                text = "Super Partition Error\n\nFailed to operate on the super partition.",
+                text = stringResource(id = R.string.boot_err_super_title) + "\n\n" + stringResource(id = R.string.boot_err_super_detail),
                 textFirstButton = stringResource(id = R.string.view_logs),
                 onClickFirstButton = onClickViewLogs,
                 textSecondButton = stringResource(id = R.string.mreturn),
                 onClickSecondButton = onClickClear,
                 showError = true,
-                suggestion = "Ensure device properly supports Dynamic Partitions",
+                suggestion = stringResource(id = R.string.boot_err_super_suggestion),
             )
         InstallationStep.ERROR_SLOT_SWITCH ->
             ProgressableCardContent(
-                text = "Slot Switch Error\n\nFailed to switch boot slot for DSU.",
+                text = stringResource(id = R.string.boot_err_slot_switch_title) + "\n\n" + stringResource(id = R.string.boot_err_slot_switch_detail),
                 textFirstButton = stringResource(id = R.string.view_logs),
                 onClickFirstButton = onClickViewLogs,
                 textSecondButton = stringResource(id = R.string.mreturn),
@@ -413,53 +413,53 @@ fun InstallationCardStep(
             )
         InstallationStep.ERROR_FIRMWARE_MISMATCH ->
             ProgressableCardContent(
-                text = "Firmware Mismatch\n\nDevice firmware is incompatible with the GSI.",
+                text = stringResource(id = R.string.boot_err_firmware_title) + "\n\n" + stringResource(id = R.string.boot_err_firmware_detail),
                 textFirstButton = stringResource(id = R.string.view_logs),
                 onClickFirstButton = onClickViewLogs,
                 textSecondButton = stringResource(id = R.string.mreturn),
                 onClickSecondButton = onClickClear,
                 showError = true,
-                suggestion = "Update your device firmware to the latest version",
+                suggestion = stringResource(id = R.string.boot_err_firmware_suggestion),
             )
         InstallationStep.ERROR_TREBLE_INCOMPATIBLE ->
             ProgressableCardContent(
-                text = "Treble Incompatible\n\nYour device may not be Treble-compliant or has incorrect Treble implementation.",
+                text = stringResource(id = R.string.boot_err_treble_title) + "\n\n" + stringResource(id = R.string.boot_err_treble_detail),
                 textFirstButton = stringResource(id = R.string.view_logs),
                 onClickFirstButton = onClickViewLogs,
                 textSecondButton = stringResource(id = R.string.mreturn),
                 onClickSecondButton = onClickClear,
                 showError = true,
-                suggestion = "Check Treble compliance with Treble Info app",
+                suggestion = stringResource(id = R.string.boot_err_treble_suggestion),
             )
         InstallationStep.ERROR_VNDK_MISMATCH ->
             ProgressableCardContent(
-                text = "VNDK Version Mismatch\n\nThe GSI's VNDK version doesn't match your device.",
+                text = stringResource(id = R.string.boot_err_vndk_title) + "\n\n" + stringResource(id = R.string.boot_err_vndk_detail),
                 textFirstButton = stringResource(id = R.string.view_logs),
                 onClickFirstButton = onClickViewLogs,
                 textSecondButton = stringResource(id = R.string.mreturn),
                 onClickSecondButton = onClickClear,
                 showError = true,
-                suggestion = "Check your VNDK: getprop ro.vndk.version\nUse GSI with matching VNDK",
+                suggestion = stringResource(id = R.string.boot_err_vndk_suggestion),
             )
         InstallationStep.ERROR_CPU_ARCH_MISMATCH ->
             ProgressableCardContent(
-                text = "CPU Architecture Mismatch\n\nThe GSI is built for a different CPU architecture.",
+                text = stringResource(id = R.string.boot_err_cpu_arch_title) + "\n\n" + stringResource(id = R.string.boot_err_cpu_arch_detail),
                 textFirstButton = stringResource(id = R.string.view_logs),
                 onClickFirstButton = onClickViewLogs,
                 textSecondButton = stringResource(id = R.string.mreturn),
                 onClickSecondButton = onClickClear,
                 showError = true,
-                suggestion = "Use GSI matching your device architecture (arm64-v8a, armeabi-v7a, etc.)",
+                suggestion = stringResource(id = R.string.boot_err_cpu_arch_suggestion),
             )
         InstallationStep.ERROR_UNKNOWN_BOOT_FAILURE ->
             ProgressableCardContent(
-                text = "Unknown Boot Failure\n\nAn unidentified error occurred during boot. Check logs for details.",
+                text = stringResource(id = R.string.boot_err_unknown_title) + "\n\n" + stringResource(id = R.string.boot_err_unknown_detail),
                 textFirstButton = stringResource(id = R.string.view_logs),
                 onClickFirstButton = onClickViewLogs,
                 textSecondButton = stringResource(id = R.string.mreturn),
                 onClickSecondButton = onClickClear,
                 showError = true,
-                suggestion = "Review logs and search for your device + GSI on XDA forums",
+                suggestion = stringResource(id = R.string.boot_err_unknown_suggestion),
             )
     }
 }

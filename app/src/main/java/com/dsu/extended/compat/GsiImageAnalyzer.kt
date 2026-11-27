@@ -171,7 +171,7 @@ class GsiImageAnalyzer {
         }
         logical.use {
             if (logical.unsparseSize > MAX_DECODED_BYTES) {
-                throw IOException("Decoded image exceeds the safety limit")
+                throw IOException("解码后的镜像超出安全上限")
             }
             val first = ByteArray(GsiImageInput.HEADER_BYTES)
             var firstLength = 0
@@ -181,7 +181,7 @@ class GsiImageAnalyzer {
                 val read = logical.read(first, firstLength, first.size - firstLength)
                 if (read < 0) break
                 if (read == 0) {
-                    if (++stalledReads > MAX_STALLED_READS) throw IOException("Image stream stalled")
+                    if (++stalledReads > MAX_STALLED_READS) throw IOException("镜像数据流已停滞")
                     continue
                 }
                 stalledReads = 0
@@ -212,13 +212,13 @@ class GsiImageAnalyzer {
                     break
                 }
                 if (read == 0) {
-                    if (++stalledReads > MAX_STALLED_READS) throw IOException("Image stream stalled")
+                    if (++stalledReads > MAX_STALLED_READS) throw IOException("镜像数据流已停滞")
                     continue
                 }
                 stalledReads = 0
                 totalRead += read
                 if (totalRead > MAX_DECODED_BYTES) {
-                    throw IOException("Decoded image exceeds the safety limit")
+                    throw IOException("解码后的镜像超出安全上限")
                 }
                 scanner.accept(buffer, 0, read)
                 if (totalBytes > 0L && totalRead - lastReported >= progressStep) {
@@ -334,7 +334,7 @@ class GsiImageAnalyzer {
         (processed.toDouble() / total.toDouble()).coerceIn(0.0, 1.0).toFloat()
 
     private fun checkCancelled(isCancelled: () -> Boolean) {
-        if (isCancelled()) throw CancellationException("GSI analysis cancelled")
+        if (isCancelled()) throw CancellationException("GSI 分析已取消")
     }
 
     private fun isSparseHeader(header: ByteArray): Boolean =

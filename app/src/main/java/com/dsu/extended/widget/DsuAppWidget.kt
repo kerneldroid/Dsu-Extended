@@ -109,30 +109,30 @@ class DsuAppWidget : GlanceAppWidget() {
                 badgeBg = colors.secondaryContainer.getColor(context).toArgb()
                 iconTint = colors.onSecondaryContainer.getColor(context).toArgb()
                 iconRes = R.drawable.ic_nav_install
-                titleText = "Installing GSI"
-                subtitleText = "Do not close the app"
+                titleText = context.getString(R.string.widget_installing_title)
+                subtitleText = context.getString(R.string.widget_installing_subtitle)
             }
             isRunning -> {
                 badgeBg = colors.tertiary.getColor(context).toArgb()
                 iconTint = colors.onTertiary.getColor(context).toArgb()
                 iconRes = R.drawable.ic_nav_install_filled
-                titleText = "Running DSU"
-                subtitleText = "Dynamic System active"
+                titleText = context.getString(R.string.widget_running_title)
+                subtitleText = context.getString(R.string.widget_running_subtitle)
             }
             isInstalled -> {
                 badgeBg = colors.primary.getColor(context).toArgb()
                 iconTint = colors.onPrimary.getColor(context).toArgb()
                 iconRes = R.drawable.ic_nav_storage_filled
-                titleText = "GSI Installed"
-                subtitleText = "Ready to boot"
+                titleText = context.getString(R.string.widget_installed_title)
+                subtitleText = context.getString(R.string.widget_installed_subtitle)
             }
             else -> {
                 // Glance 1.1.1 has no surfaceContainerHighest token; use surfaceVariant.
                 badgeBg = colors.surfaceVariant.getColor(context).toArgb()
                 iconTint = colors.onSurfaceVariant.getColor(context).toArgb()
                 iconRes = R.drawable.ic_nav_install
-                titleText = "Not installed"
-                subtitleText = "No GSI image staged"
+                titleText = context.getString(R.string.widget_not_installed_title)
+                subtitleText = context.getString(R.string.widget_not_installed_subtitle)
             }
         }
 
@@ -208,7 +208,7 @@ class DsuAppWidget : GlanceAppWidget() {
                 if (isInstalled && !isRunning && !installing) {
                     Spacer(modifier = GlanceModifier.defaultWeight())
                     Button(
-                        text = "Reboot",
+                        text = context.getString(R.string.widget_reboot),
                         onClick = actionRunCallback<RebootToDsuActionCallback>(),
                         modifier = GlanceModifier
                             .fillMaxWidth()

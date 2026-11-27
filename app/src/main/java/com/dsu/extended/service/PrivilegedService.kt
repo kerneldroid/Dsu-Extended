@@ -369,7 +369,7 @@ class PrivilegedService : IPrivilegedService.Stub() {
                     Thread.sleep(100L)
                     found = getBinderOrNull("gsiservice")
                 }
-                found ?: throw IllegalStateException("gsiservice is unavailable")
+                found ?: throw IllegalStateException("gsiservice 不可用")
             }
         return IGsiService.Stub.asInterface(binder).also { GSI_SERVICE = it }
     }
@@ -670,7 +670,7 @@ class PrivilegedService : IPrivilegedService.Stub() {
                 }
                 output.fd.sync()
                 if (copied != totalBytes) {
-                    throw IllegalStateException("short copy: $copied of $totalBytes")
+                    throw IllegalStateException("复制不完整：$copied / $totalBytes")
                 }
                 transferListener?.onProgress(copied, totalBytes)
             }
@@ -734,11 +734,11 @@ class PrivilegedService : IPrivilegedService.Stub() {
                     ?: emptyMap()
                 DsuSystemMetadata(
                     sdkVersion = props["ro.build.version.sdk"]?.toIntOrNull() ?: 0,
-                    androidVersion = props["ro.build.version.release"].orEmpty().ifEmpty { "Unknown" },
-                    cpuAbi = props["ro.product.cpu.abi"].orEmpty().ifEmpty { "Unknown" },
-                    vndkVersion = props["ro.vndk.version"] ?: props["ro.vndk.lite"] ?: "None",
-                    securityPatch = props["ro.build.version.security_patch"].orEmpty().ifEmpty { "Unknown" },
-                    buildFingerprint = props["ro.build.fingerprint"].orEmpty().ifEmpty { "Unknown" },
+                    androidVersion = props["ro.build.version.release"].orEmpty().ifEmpty { "未知" },
+                    cpuAbi = props["ro.product.cpu.abi"].orEmpty().ifEmpty { "未知" },
+                    vndkVersion = props["ro.vndk.version"] ?: props["ro.vndk.lite"] ?: "无",
+                    securityPatch = props["ro.build.version.security_patch"].orEmpty().ifEmpty { "未知" },
+                    buildFingerprint = props["ro.build.fingerprint"].orEmpty().ifEmpty { "未知" },
                     isTrebleCompliant = props["ro.treble.enabled"]?.toBoolean() ?: true,
                 )
             }
@@ -850,12 +850,12 @@ class PrivilegedService : IPrivilegedService.Stub() {
         val gsi = requiresGsiService()
         runCatching {
             if (!requiresDynamicSystem()) {
-                throw IllegalStateException("dynamic_system service unavailable")
+                throw IllegalStateException("dynamic_system 服务不可用")
             }
             check(DYNAMIC_SYSTEM?.isInUse != true) { "DSU is running" }
         }.onFailure {
             teardownInspectorMount()
-            throw IllegalStateException("Cannot inspect images while DSU is running", it)
+            throw IllegalStateException("DSU 运行期间无法检查镜像", it)
         }
 
         synchronized(inspectorLock) {
@@ -870,10 +870,10 @@ class PrivilegedService : IPrivilegedService.Stub() {
             teardownInspectorMount()
         }
 
-        if (!isRootProcess()) throw IllegalStateException("mount requires root")
+        if (!isRootProcess()) throw IllegalStateException("挂载需要 root 权限")
         val imageService = gsi.openImageService(prefix)
         if (!imageService.backingImageExists(imageName)) {
-            throw IllegalStateException("missing image")
+            throw IllegalStateException("缺少镜像")
         }
         if (imageService.isImageMapped(imageName)) {
             imageService.unmapImageDevice(imageName)
@@ -883,7 +883,7 @@ class PrivilegedService : IPrivilegedService.Stub() {
         val mountRoot = File(INSPECT_MOUNT_BASE, "${imageName.removeSuffix(".img")}_$hash").apply { mkdirs() }
         val mappedImage = MappedImage()
         imageService.mapImageDevice(imageName, PartitionResult.MAP_TIMEOUT_MS, mappedImage)
-        val devicePath = mappedImage.path ?: error("mapped device path is null")
+        val devicePath = mappedImage.path ?: error("映射的设备路径为空")
 
         var mounted = false
         try {

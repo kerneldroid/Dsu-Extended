@@ -55,12 +55,12 @@ object PrivilegedProvider {
         while (!isConnected()) {
             timeout += 500
             if (timeout > 20000) {
-                throw IllegalStateException("Privileged service unavailable after ${timeout / 1000}s")
+                throw IllegalStateException("特权服务在 ${timeout / 1000} 秒后仍不可用")
             }
             Thread.sleep(500)
         }
         return this.connection.SERVICE
-            ?: throw IllegalStateException("Privileged service became unavailable")
+            ?: throw IllegalStateException("特权服务已不可用")
     }
 
     // Blocking

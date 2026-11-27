@@ -276,7 +276,7 @@ class GsiCompatibilityEvaluator {
             findings += blocker(
                 CompatibilityCode.ABI_MISMATCH,
                 abi,
-                device.supportedAbis.joinToString(", ").ifBlank { "unknown" },
+                device.supportedAbis.joinToString(", ").ifBlank { "未知" },
             )
         }
     }

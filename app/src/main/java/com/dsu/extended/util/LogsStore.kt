@@ -1,6 +1,7 @@
 package com.dsu.extended.util
 
 import android.content.Context
+import com.dsu.extended.R
 import com.topjohnwu.superuser.Shell
 import java.io.File
 import java.text.SimpleDateFormat
@@ -105,7 +106,7 @@ object LogsStore {
             writeLog(
                 context = context,
                 type = StoredLogType.GSI,
-                title = "gsi_snapshot",
+                title = context.getString(R.string.logs_title_gsi_snapshot),
                 content = content,
             )
         }
@@ -114,12 +115,12 @@ object LogsStore {
     private fun buildGsiSnapshotText(isRoot: Boolean): String {
         val now = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(Date())
         val builder = StringBuilder()
-        builder.appendLine("DSU Extended GSI log snapshot")
-        builder.appendLine("generatedAt=$now")
-        builder.appendLine("filter=GSI/DSU-related lines only")
+        builder.appendLine("DSU Extended GSI 日志快照")
+        builder.appendLine("生成时间=$now")
+        builder.appendLine("过滤规则=仅 GSI/DSU 相关行")
         builder.appendLine("root=$isRoot")
         builder.appendLine()
-        builder.appendLine("=== GSI / DSU properties ===")
+        builder.appendLine("=== GSI / DSU 属性 ===")
         listOf(
             "gsid.image_installed",
             "ro.gsid.image_running",
@@ -134,11 +135,11 @@ object LogsStore {
         }
 
         builder.appendLine()
-        builder.appendLine("=== logcat (filtered GSI/DSU lines) ===")
+        builder.appendLine("=== logcat（过滤后的 GSI/DSU 行）===")
         val logcat = filteredOrError(
             runShell("logcat -d -b main,system,crash -v threadtime -t $MAX_LOGCAT_LINES"),
         )
-        builder.appendLine(logcat.ifBlank { "(no GSI/DSU-related logcat lines)" })
+        builder.appendLine(logcat.ifBlank { "（没有与 GSI/DSU 相关的 logcat 行）" })
 
         builder.appendLine()
         builder.appendLine("=== /data/gsi ===")
@@ -146,33 +147,33 @@ object LogsStore {
             builder.appendLine(runShell("ls -la /data/gsi 2>&1"))
             builder.appendLine(runShell("du -sh /data/gsi/* 2>&1 | tail -n 50"))
         } else {
-            builder.appendLine("Root is unavailable; /data/gsi listing skipped.")
+            builder.appendLine("Root 不可用；已跳过 /data/gsi 列表。")
         }
 
         builder.appendLine()
-        builder.appendLine("=== dmesg (filtered, tail $MAX_KERNEL_LINES) ===")
+        builder.appendLine("=== dmesg（已过滤，末尾 $MAX_KERNEL_LINES 行）===")
         if (isRoot) {
             val dmesg = filteredKernelOrError(
                 runShell("dmesg -T 2>/dev/null | tail -n $MAX_KERNEL_LINES"),
             )
-            builder.appendLine(dmesg.ifBlank { "(no GSI/DSU-related kernel lines)" })
+            builder.appendLine(dmesg.ifBlank { "（没有与 GSI/DSU 相关的内核日志行）" })
         } else {
-            builder.appendLine("Root is unavailable; dmesg skipped.")
+            builder.appendLine("Root 不可用；已跳过 dmesg。")
         }
 
         builder.appendLine()
-        builder.appendLine("=== /proc/last_kmsg (filtered) ===")
+        builder.appendLine("=== /proc/last_kmsg（已过滤）===")
         if (isRoot) {
             val lastKmsg = filteredKernelOrError(
                 runShell("cat /proc/last_kmsg 2>/dev/null | tail -n $MAX_KERNEL_LINES"),
             )
-            builder.appendLine(lastKmsg.ifBlank { "(last_kmsg is unavailable or has no GSI/DSU lines)" })
+            builder.appendLine(lastKmsg.ifBlank { "（last_kmsg 不可用或没有 GSI/DSU 相关行）" })
         } else {
-            builder.appendLine("Root is unavailable; last_kmsg skipped.")
+            builder.appendLine("Root 不可用；已跳过 last_kmsg。")
         }
 
         builder.appendLine()
-        builder.appendLine("=== /sys/fs/pstore (filtered) ===")
+        builder.appendLine("=== /sys/fs/pstore（已过滤）===")
         if (isRoot) {
             val pstore = filteredKernelOrError(
                 runShell(
@@ -183,19 +184,19 @@ object LogsStore {
                         "else echo \"pstore not available\"; fi",
                 ),
             )
-            builder.appendLine(pstore.ifBlank { "(pstore has no GSI/DSU lines)" })
+            builder.appendLine(pstore.ifBlank { "（pstore 中没有 GSI/DSU 相关行）" })
         } else {
-            builder.appendLine("Root is unavailable; pstore skipped.")
+            builder.appendLine("Root 不可用；已跳过 pstore。")
         }
 
         builder.appendLine()
-        builder.appendLine("=== app events (buffered) ===")
-        builder.appendLine(AppLogger.dumpBufferedLogs().ifBlank { "(empty)" })
+        builder.appendLine("=== 应用事件（缓冲）===")
+        builder.appendLine(AppLogger.dumpBufferedLogs().ifBlank { "（空）" })
         return builder.toString()
     }
 
     private fun filteredOrError(raw: String): String {
-        return if (raw.startsWith("stderr:") || raw.startsWith("command failed:")) {
+        return if (raw.startsWith("标准错误：") || raw.startsWith("命令执行失败：")) {
             raw
         } else {
             GsiLogFilter.filter(raw)
@@ -203,7 +204,7 @@ object LogsStore {
     }
 
     private fun filteredKernelOrError(raw: String): String {
-        return if (raw.startsWith("stderr:") || raw.startsWith("command failed:")) {
+        return if (raw.startsWith("标准错误：") || raw.startsWith("命令执行失败：")) {
             raw
         } else {
             GsiLogFilter.filterKernel(raw)
@@ -218,12 +219,12 @@ object LogsStore {
             if (out.isNotBlank()) {
                 out
             } else if (err.isNotBlank()) {
-                "stderr:\n$err"
+                "标准错误：\n$err"
             } else {
-                "(empty)"
+                "（空）"
             }
         }.getOrElse {
-            "command failed: ${it.message}"
+            "命令执行失败：${it.message}"
         }
     }
 

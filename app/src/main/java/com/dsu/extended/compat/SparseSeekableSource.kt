@@ -33,20 +33,20 @@ internal class SparseSeekableSource(
 
     init {
         val header = container.readExactly(0L, HEADER_SIZE)
-            ?: throw IOException("Truncated sparse image header")
-        if (header.size < HEADER_SIZE) throw IOException("Truncated sparse image header")
-        if (le32(header, 0) != SPARSE_MAGIC) throw IOException("Not a sparse image")
-        if (le16(header, 4) > 1) throw IOException("Unsupported sparse version")
-        if (le16(header, 8) != HEADER_SIZE) throw IOException("Invalid sparse header size")
-        if (le16(header, 10) != CHUNK_HEADER_SIZE) throw IOException("Invalid sparse chunk header size")
+            ?: throw IOException("sparse 镜像头部被截断")
+        if (header.size < HEADER_SIZE) throw IOException("sparse 镜像头部被截断")
+        if (le32(header, 0) != SPARSE_MAGIC) throw IOException("不是 sparse 镜像")
+        if (le16(header, 4) > 1) throw IOException("不支持的 sparse 版本")
+        if (le16(header, 8) != HEADER_SIZE) throw IOException("sparse 头部尺寸无效")
+        if (le16(header, 10) != CHUNK_HEADER_SIZE) throw IOException("sparse 数据块头部尺寸无效")
 
         val blockSize = le32(header, 12).toLong() and 0xFFFFFFFFL
-        if (blockSize <= 0L || blockSize % 4L != 0L) throw IOException("Invalid sparse block size")
+        if (blockSize <= 0L || blockSize % 4L != 0L) throw IOException("sparse 块大小无效")
         val totalBlocks = le32(header, 16).toLong() and 0xFFFFFFFFL
         val totalChunks = le32(header, 20).toLong() and 0xFFFFFFFFL
-        if (totalBlocks <= 0L || totalChunks <= 0L) throw IOException("Empty sparse image")
-        if (totalChunks > MAX_SEGMENTS) throw IOException("Sparse image has too many chunks")
-        if (totalBlocks > Long.MAX_VALUE / blockSize) throw IOException("Invalid sparse image size")
+        if (totalBlocks <= 0L || totalChunks <= 0L) throw IOException("sparse 镜像为空")
+        if (totalChunks > MAX_SEGMENTS) throw IOException("sparse 镜像数据块过多")
+        if (totalBlocks > Long.MAX_VALUE / blockSize) throw IOException("sparse 镜像大小无效")
 
         val declaredSize = totalBlocks * blockSize
         var physical = HEADER_SIZE.toLong()
@@ -55,7 +55,7 @@ internal class SparseSeekableSource(
         while (index < totalChunks) {
             budget.check()
             val chunkHeader = container.readExactly(physical, CHUNK_HEADER_SIZE)
-                ?: throw EOFException("Truncated sparse chunk header")
+                ?: throw EOFException("sparse 数据块头部被截断")
             physical += CHUNK_HEADER_SIZE
             val type = le16(chunkHeader, 0)
             val chunkBlocks = le32(chunkHeader, 4).toLong() and 0xFFFFFFFFL
@@ -64,37 +64,37 @@ internal class SparseSeekableSource(
             when (type) {
                 CHUNK_RAW -> {
                     if (chunkBytes <= 0L || dataSize != chunkBytes) {
-                        throw IOException("Invalid sparse raw chunk")
+                        throw IOException("sparse 原始数据块无效")
                     }
                     segments += Segment(logical, chunkBytes, physical, type)
                     physical += dataSize
                 }
 
                 CHUNK_FILL -> {
-                    if (chunkBytes <= 0L || dataSize != 4L) throw IOException("Invalid sparse fill chunk")
+                    if (chunkBytes <= 0L || dataSize != 4L) throw IOException("sparse 填充数据块无效")
                     val fill = container.readExactly(physical, 4)
-                        ?: throw EOFException("Truncated sparse fill chunk")
+                        ?: throw EOFException("sparse 填充数据块被截断")
                     segments += Segment(logical, chunkBytes, 0L, type, le32(fill, 0))
                     physical += 4L
                 }
 
                 CHUNK_DONT_CARE -> {
-                    if (chunkBytes <= 0L) throw IOException("Invalid sparse dont-care chunk")
+                    if (chunkBytes <= 0L) throw IOException("sparse dont-care 数据块无效")
                     segments += Segment(logical, chunkBytes, 0L, type)
                     physical += dataSize
                 }
 
                 CHUNK_CRC32 -> physical += dataSize
 
-                else -> throw IOException("Unsupported sparse chunk type: $type")
+                else -> throw IOException("不支持的 sparse 数据块类型：$type")
             }
             logical += chunkBytes
-            if (logical < 0L || logical > declaredSize) throw IOException("Sparse chunk exceeds image size")
+            if (logical < 0L || logical > declaredSize) throw IOException("sparse 数据块超出镜像大小")
             index++
         }
         size = logical
-        if (size != declaredSize) throw IOException("Sparse image size mismatch")
-        if (segments.isEmpty()) throw IOException("Empty sparse image")
+        if (size != declaredSize) throw IOException("sparse 镜像大小不匹配")
+        if (segments.isEmpty()) throw IOException("sparse 镜像为空")
     }
 
     override fun readAt(
@@ -105,7 +105,7 @@ internal class SparseSeekableSource(
     ): Int {
         if (offset < 0L || length <= 0 || offset >= size) return -1
         if (destinationOffset < 0 || destinationOffset + length > destination.size) {
-            throw IndexOutOfBoundsException("Invalid destination range")
+            throw IndexOutOfBoundsException("目标区间无效")
         }
         var logical = offset
         var written = 0

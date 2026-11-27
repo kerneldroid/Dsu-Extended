@@ -85,7 +85,7 @@ class GsiCompatibilityChecker(
 
     private fun openStream(uri: Uri): InputStream {
         return context.contentResolver.openInputStream(uri)
-            ?: throw IOException("Cannot open image")
+            ?: throw IOException("无法打开镜像")
     }
 
     /**

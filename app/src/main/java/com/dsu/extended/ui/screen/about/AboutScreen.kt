@@ -270,9 +270,9 @@ fun AboutScreen(
 
         val translators = stringResource(id = R.string.translators_list)
         val collaboratorItems = listOf(
-            Collaborator("kerneldroid", "kerneldroid", "Main Developer", AboutLinks.KERNELDROID_GITHUB),
-            Collaborator("senodroid", "senodroid", "Original Fork Author", AboutLinks.SENODROID_GITHUB),
-            Collaborator("yangFenTuoZi", "yangFenTuoZi", "DSU-Sideloader-Plus author", "https://github.com/yangFenTuoZi"),
+            Collaborator("kerneldroid", "kerneldroid", stringResource(id = R.string.role_main_developer), AboutLinks.KERNELDROID_GITHUB),
+            Collaborator("senodroid", "senodroid", stringResource(id = R.string.role_original_fork_author), AboutLinks.SENODROID_GITHUB),
+            Collaborator("yangFenTuoZi", "yangFenTuoZi", stringResource(id = R.string.role_dsu_sideloader_author), "https://github.com/yangFenTuoZi"),
             Collaborator("VegaBobo", "VegaBobo", stringResource(id = R.string.role_developer), AboutLinks.VEGABOBO_GITHUB),
             Collaborator("WSTxda", "WSTxda", stringResource(id = R.string.role_design_icon), AboutLinks.WSTXDA_GITHUB),
         ) + buildList {

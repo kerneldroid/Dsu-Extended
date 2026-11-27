@@ -515,8 +515,8 @@ class HomeViewModel @Inject constructor(
         val configSnapshot = buildConfigSnapshot()
         val entries =
             linkedMapOf(
-                "filtered-logcat.txt" to currentUiState.installationLogs.ifBlank { "No filtered logcat captured." },
-                "app-events.txt" to AppLogger.dumpBufferedLogs().ifBlank { "No in-app logs captured." },
+                "filtered-logcat.txt" to currentUiState.installationLogs.ifBlank { "未捕获到过滤后的 logcat。" },
+                "app-events.txt" to AppLogger.dumpBufferedLogs().ifBlank { "未捕获到应用内日志。" },
                 "config-snapshot.txt" to configSnapshot,
             )
         AppLogger.i(tag, "Saving logs archive", "uri" to uriToSaveLogs)
@@ -936,10 +936,10 @@ class HomeViewModel @Inject constructor(
                     appendLine(buildConfigSnapshot())
                     appendLine()
                     appendLine("=== installation logs ===")
-                    appendLine(installationLog.ifBlank { "(empty)" })
+                    appendLine(installationLog.ifBlank { "（空）" })
                     appendLine()
                     appendLine("=== app events ===")
-                    appendLine(AppLogger.dumpBufferedLogs().ifBlank { "(empty)" })
+                    appendLine(AppLogger.dumpBufferedLogs().ifBlank { "（空）" })
                 }
             runCatching {
                 LogsStore.writeLog(

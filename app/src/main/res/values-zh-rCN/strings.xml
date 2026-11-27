@@ -1,0 +1,591 @@
+<resources>
+    <string name="app_name" translatable="false">Dsu Extended</string>
+
+    <!--
+        Home screen
+     -->
+
+    <!-- Warning cards -->
+    <string name="unsupported">不支持</string>
+    <string name="device_unsupported_description">您的设备不支持动态分区（DSU 需要动态分区）。</string>
+
+    <string name="setup_storage">设置存储</string>
+    <string name="setup_storage_description">您需要选择一个文件夹作为应用存储（用于存放临时文件）。\n\n请选择或新建一个文件夹，并允许访问它。</string>
+    <string name="setup">设置</string>
+
+    <string name="storage_warning">存储空间警告</string>
+    <string name="storage_warning_description">您的可用存储空间不足 %1$s%%，安装过程将会失败，请释放一些空间。</string>
+    <string name="continue_anyway">仍然继续</string>
+
+    <string name="missing_permission">缺少权限</string>
+    <string name="missing_permission_description">Dsu Extended 需要 READ_LOGS 权限（用于读取 logcat）。\n该权限用于获取安装进度并诊断 DSU 安装错误。\n\n** 授予此权限后可能需要重启应用。</string>
+    <string name="granting_permission">正在等待服务授予权限，请稍候…</string>
+
+    <string name="unlocked_bl_warn">Bootloader 已解锁</string>
+    <string name="unlocked_bl_warn_desc">Dsu Extended 需要已解锁的 Bootloader，在部分设备上使用已锁定的 Bootloader 安装镜像可能存在危险。使用本应用之前，您：\n- 必须解锁 Bootloader。\n- 必须有办法恢复设备原厂固件。\n- 建议进行完整备份。\n本应用面向开发者和高级用户，请务必注意风险。</string>
+
+    <!-- Installation card -->
+    <string name="select_gsi_info">选择要安装的文件</string>
+    <string name="dsu_already_installed">已存在一个 DSU 安装。</string>
+
+    <string name="selected_file">已选文件</string>
+    <string name="file_unsupported">不支持的文件</string>
+
+    <string name="clear">清除</string>
+    <string name="install">安装</string>
+
+    <!-- Installation dialog -->
+    <string name="proceed_installation">继续安装？</string>
+    <string name="proceed_installation_description">将使用以下参数进行安装：</string>
+
+    <!-- Discard installed DSU dialog -->
+    <string name="discard_dsu_question">放弃安装？</string>
+    <string name="dsu_already_installed_warning">放弃后，已安装 DSU 中的全部数据都将被删除，确定继续吗？</string>
+
+    <!-- Preparation -->
+    <string name="decompressing_gz">正在解压 gz 文件…</string>
+    <string name="decompressing_xz">正在解压 xz 文件…</string>
+    <string name="compressing_to_gz">正在准备镜像文件…</string>
+    <string name="extracting_file">正在提取文件…</string>
+    <string name="copying_file">正在复制文件…</string>
+    <string name="processing">正在处理…</string>
+    <string name="validating_image">正在校验镜像…</string>
+
+    <!-- Installation -->
+    <string name="installation_prompt">已唤起安装提示，等待用户确认以继续…</string>
+
+    <string name="creating_partition">正在创建 %1$s 分区</string>
+    <string name="installing_partition">正在处理 %1$s 分区…</string>
+    <string name="installing">正在安装…</string>
+
+    <!-- ADB install -->
+    <string name="require_adb_cmd_to_continue">准备完成，需要执行一条命令才能继续安装。</string>
+    <string name="see_commands">查看命令</string>
+
+    <!-- Installation errors -->
+
+    <!-- Already running a installed DSU -->
+    <string name="already_running_dsu">不支持在运行已安装 DSU 的情况下再次安装 DSU，请先将设备重启到默认系统。</string>
+
+    <!-- Already installed DSU card -->
+    <string name="discard_dsu_otg">已存在一个 DSU 安装，是否放弃并继续？\n\n**DSU 安装中存储的所有数据都将被删除。</string>
+    <string name="discard_dsu">放弃 DSU</string>
+
+    <!-- Allocation error card -->
+    <string name="allocation_error_description">在 sdcard 上分配空间失败，您可以尝试以下修复方法：\n - 安装 Dsu Extended 的 Magisk 模块。\n - 卸载 sdcard（您可以在设置中永久开启此选项）。</string>
+    <string name="allocation_error_action">卸载 SD 卡并重试</string>
+
+    <!-- No free storage error card -->
+    <string name="storage_error_description">Android 要求至少保留 %1$s%% 的可用存储空间才能继续安装，请释放一些空间后重试。</string>
+
+    <!-- Filesystem features not found error card -->
+    <string name="fs_features_error_description">您的内核可能在与 GSI 守护进程预期不同的路径上注册 f2fs，您可以尝试以下修复方法：\n - 安装 Dsu Extended 的 Magisk 模块。\n - 更换内核。</string>
+
+    <!-- SELinux error card -->
+    <string name="selinux_error_description">看起来 SELinux 拒绝正在阻止 DSU 安装，您可以尝试以下修复方法：\n - 安装 Dsu Extended 的 Magisk 模块。\n - 如果您正在使用 sdcard，请尝试卸载它（设置中提供了该选项）。\n - 将 SELinux 切换为宽容模式（不推荐，会削弱设备安全性）。</string>
+    <string name="selinux_error_action">以宽容模式重试</string>
+
+    <!-- Extents error card -->
+    <string name="extents_error_description">在 Android 10 设备上，镜像/文件系统需要超过 512 个 extents，您可以尝试以下修复方法：\n - 安装 Dsu Extended 的 Magisk 模块。</string>
+
+    <!-- Other errors card -->
+    <string name="failed_create_partition">创建 %1$s 分区失败。</string>
+    <string name="unknown_error">未知错误。</string>
+    <string name="error">错误</string>
+    <string name="try_again">重试</string>
+    <string name="view_logs">查看日志</string>
+    <string name="installation_canceled">安装已取消。</string>
+
+    <!-- Cancel installation dialog -->
+    <string name="cancel_installation_question">取消安装？</string>
+    <string name="cancel_installation_description">已完成的所有进度都将丢失，确定继续吗？</string>
+
+    <!-- Installation finished card -->
+    <string name="installation_finished_rootless">镜像安装成功，请查看通知以启动到动态系统。</string>
+    <string name="installation_finished">安装完成。</string>
+    <string name="reboot_into_dsu">重启到 DSU</string>
+    <string name="live_update_channel_name">安装实时更新</string>
+    <string name="live_update_channel_description">DSU 安装的进度与状态更新</string>
+    <string name="live_update_notification_title">DSU 正在安装</string>
+    <string name="live_update_notification_short_text">%1$d%%</string>
+    <string name="live_update_notification_success">安装完成。点击打开应用。</string>
+    <string name="live_update_notification_success_reboot">安装完成。点击重启到 DSU。</string>
+    <string name="live_update_notification_error">安装失败。点击打开应用。</string>
+
+    <!-- Userdata card -->
+    <string name="userdata_size">用户数据大小</string>
+    <string name="userdata_size_info">单位为吉字节（GB）</string>
+    <string name="allowed_userdata_allocation">最大可分配：%1$sGB</string>
+
+    <!-- Image size card -->
+    <string name="image_size">镜像大小</string>
+    <string name="image_size_info">单位为字节</string>
+    <string name="not_recommended_option">强烈不建议使用此选项！</string>
+
+    <!-- Image size dialog -->
+    <string name="dialog_image_size">设置镜像大小？</string>
+    <string name="dialog_image_size_description">Dsu Extended 会自动为您设置此参数，手动设置镜像大小是强烈不建议的做法。</string>
+    <string name="set_anyway">仍然设置</string>
+
+    <!-- What is DSU card -->
+    <string name="what_is_dsu">什么是 DSU？</string>
+    <string name="what_is_dsu_description">DSU（Dynamic System Updates，动态系统更新）是 Android 10 引入的功能，允许开发者在不改动设备分区的情况下测试 Android 系统镜像；从 Android 11 开始，DSU 还可以替换多个分区。</string>
+    <string name="view_docs">查看文档</string>
+    <string name="learn_more">了解更多</string>
+
+    <!--
+        Settings screen
+    -->
+
+    <string name="settings">设置</string>
+
+
+    <string name="builtin_installer">内置安装器</string>
+    <string name="builtin_installer_description">更快，使用内部 API 直接安装镜像</string>
+
+    <string name="unmount_sd_title">卸载 SD 卡</string>
+    <string name="unmount_sd_description">安装时临时卸载 SD 卡</string>
+
+
+    <string name="storage_check_title">禁用存储检查</string>
+    <string name="storage_check_description">禁用用户数据存储检查，不推荐</string>
+
+    <string name="full_logcat_logging_title">完整 logcat 日志</string>
+    <string name="full_logcat_logging_description">日志页面将记录无过滤的日志，可能降低应用性能</string>
+
+    <string name="keep_screen_on">保持屏幕常亮</string>
+
+    <string name="developer_options">开发者选项</string>
+
+    <string name="other">其他</string>
+
+    <string name="operation_mode">运行模式</string>
+    <string name="operation_mode_preferred_all">首选：全部</string>
+    <string name="operation_mode_preferred_root">首选：Root</string>
+    <string name="operation_mode_preferred_shizuku">首选：Shizuku</string>
+    <string name="operation_mode_preferred_dhizuku">首选：Dhizuku</string>
+
+    <string name="operation_mode_force_all">检查全部（自动选择）</string>
+    <string name="operation_mode_force_all_description">检查 Root、Dhizuku 和 Shizuku，然后使用第一个可用的后端</string>
+    <string name="operation_mode_force_root">强制 Root 模式</string>
+    <string name="operation_mode_force_root_description">只要 Root 可用就始终使用 Root</string>
+    <string name="operation_mode_force_shizuku">强制 Shizuku 模式</string>
+    <string name="operation_mode_force_shizuku_description">当 Root 和 Shizuku 都可用时优先使用 Shizuku</string>
+    <string name="operation_mode_force_dhizuku">强制 Dhizuku 模式</string>
+    <string name="operation_mode_force_dhizuku_description">在可用时使用 Dhizuku 设备所有者后端</string>
+
+    <string name="theme_mode">主题模式</string>
+    <string name="theme_mode_system">跟随系统</string>
+    <string name="theme_mode_light">浅色</string>
+    <string name="theme_mode_dark">深色</string>
+    <string name="theme_mode_oled">OLED 纯黑</string>
+    <string name="app_font_title">应用字体</string>
+    <string name="app_font_system_default">系统默认</string>
+
+    <string name="material_color_style">Material 配色风格</string>
+    <string name="material_color_style_tonal_spot">色调聚焦</string>
+    <string name="material_color_style_expressive">表现力</string>
+    <string name="material_color_style_vibrant">鲜艳</string>
+    <string name="material_color_style_monochrome">单色</string>
+    <string name="material_color_style_neutral">中性</string>
+    <string name="material_color_style_rainbow">彩虹</string>
+    <string name="material_color_style_fruit_salad">水果沙拉</string>
+    <string name="material_color_style_fidelity">高保真</string>
+    <string name="material_color_style_content">内容取色</string>
+    <string name="material_color_spec_2021">SPEC 2021</string>
+    <string name="material_color_spec_2025">SPEC 2025</string>
+
+    <string name="dynamic_color_title">使用动态取色</string>
+    <string name="dynamic_color_description_on">从壁纸取色的 Material You 颜色（Android 12+），并应用所选配色风格</string>
+    <string name="dynamic_color_description_off">使用所选的 Material 配色方案</string>
+
+    <string name="about">关于</string>
+    <string name="about_description">鸣谢、开源库及更多…</string>
+
+    <!--
+        About screen
+    -->
+
+    <string name="version_info">版本 %1$s (%2$d)</string>
+    <string name="check_updates_title">检查更新</string>
+    <string name="check_updates_text_idle">点击检查</string>
+    <string name="check_updates_text_found">发现新版本 %1$s</string>
+    <string name="check_updates_text_updated">已是最新版本</string>
+    <string name="check_all_title">检查全部</string>
+    <string name="changelog">更新日志</string>
+    <string name="download">下载</string>
+
+    <string name="application">应用</string>
+
+    <string name="developer_options_enabled">已启用开发者选项</string>
+    <string name="developer_options_disabled">已禁用开发者选项</string>
+
+    <string name="github_repo">GitHub 仓库</string>
+    <string name="github_repo_description">GitHub 上的源代码</string>
+
+    <string name="collaborators">协作者</string>
+
+    <string name="libraries_title">开源库</string>
+    <string name="libraries_description">本应用使用的开源库</string>
+
+    <string name="role_developer">开发者</string>
+    <string name="role_design_icon">设计参考、应用图标</string>
+
+    <string name="translators_title">翻译者</string>
+
+    <string name="translators_list" comment="Hello translator, since you have translated our app, feel free to put your name inside &quot;translators_list&quot;, it will be shown on about screen.&#10;If there is more than one translator, append names and separate each one by using a comma, like:&#10;Collaborator 1, Collaborator 2, Collaborator 3">简体中文</string>
+
+    <string name="contributors_title">贡献者</string>
+    <string name="contributors_text">为本项目提供帮助的人们</string>
+
+    <!--
+        ADB screen
+    -->
+
+    <string name="adb_how_to_adb_shell">要在非 Root 设备上开始安装，您需要在 adb shell 中运行以下命令：</string>
+    <string name="adb_how_to_shell">如果您在设备上直接运行 adb shell（例如 LADB、Shizuku 的 Rish、WebADB、Bugjaeger 等），则应改用以下命令：</string>
+    <string name="adb_how_to_done">执行完成后，请查看通知以跟进安装过程，您也可以关闭本应用。</string>
+
+    <string name="copy_text">复制文本</string>
+    <string name="copied">已复制</string>
+
+    <!--
+        View logs screen
+    -->
+
+    <string name="logs_tab_title">日志</string>
+    <string name="logs_title">日志</string>
+    <string name="logs_cat_title">GSI 日志</string>
+    <string name="logs_cat_description">仅捕获与 GSI/DSU 相关的 logcat 行，并在有 Root 权限时附带过滤后的内核、last_kmsg 和 pstore 记录。</string>
+    <string name="logs_cat_capture">捕获 GSI 日志</string>
+    <string name="logs_cat_running">正在捕获 GSI 日志…</string>
+    <string name="logs_filters_title">筛选</string>
+    <string name="logs_filter_type">日志类型</string>
+    <string name="logs_filter_type_all">全部</string>
+    <string name="logs_filter_type_installation">安装</string>
+    <string name="logs_filter_type_auto">自动模式</string>
+    <string name="logs_filter_type_gsi">GSI</string>
+    <string name="logs_filter_type_cat">传统 cat</string>
+    <string name="logs_filter_date">日期</string>
+    <string name="logs_filter_date_all">全部时间</string>
+    <string name="logs_filter_date_today">今天</string>
+    <string name="logs_filter_date_week">最近 7 天</string>
+    <string name="logs_empty">暂无日志。运行一次安装或捕获 GSI 日志即可生成。</string>
+    <string name="logs_action_read">读取</string>
+    <string name="logs_action_share">分享</string>
+    <string name="logs_action_rename">重命名</string>
+    <string name="logs_action_delete">删除</string>
+    <string name="logs_rename_title">重命名日志</string>
+    <string name="logs_rename_confirm">重命名</string>
+    <string name="logs_open_tab_content_desc">打开日志标签页</string>
+    <string name="logs_share_chooser">分享日志文件</string>
+    <string name="logs_status_renamed">日志已重命名</string>
+    <string name="logs_status_rename_failed">重命名失败</string>
+    <string name="logs_status_deleted">日志已删除</string>
+    <string name="logs_status_delete_failed">删除失败</string>
+    <string name="logs_status_gsi_saved">GSI 日志快照已保存</string>
+    <string name="logs_status_gsi_failed">GSI 日志捕获失败：%1$s</string>
+    <string name="logs_status_share_failed">分享日志失败</string>
+
+    <string name="installation_logs">安装日志</string>
+    <string name="save_logs">保存日志</string>
+    <string name="saved_logs">日志已保存！</string>
+
+    <!--
+        Generic and multipurpose strings
+     -->
+
+    <string name="no">否</string>
+    <string name="yes">是</string>
+
+    <string name="grant">授予</string>
+    <string name="refuse">拒绝</string>
+    <string name="proceed">继续</string>
+    <string name="cancel">取消</string>
+    <string name="close">关闭</string>
+    <string name="mreturn">返回</string>
+
+    <string name="installation">安装</string>
+    <string name="discard">放弃</string>
+
+
+    <string name="partitions_tab_title">分区</string>
+    <string name="partitions_add_title">添加 DSU 镜像</string>
+    <string name="partitions_add_description">镜像将被添加到 DSU 前缀 %1$s。</string>
+    <string name="partitions_readonly">以只读方式挂载镜像</string>
+    <string name="partitions_confirm">确认</string>
+    <string name="partitions_cancel">取消</string>
+    <string name="partitions_cancel_transfer">取消传输</string>
+    <string name="partitions_delete_title">删除镜像？</string>
+    <string name="partitions_delete_description">%1$s 将被永久删除。此操作无法撤销。</string>
+    <string name="partitions_delete_confirm">删除</string>
+    <string name="partitions_replace_title">替换镜像？</string>
+    <string name="partitions_replace_description">%1$s 的内容将被所选镜像覆盖。此操作无法撤销。</string>
+    <string name="partitions_empty">此设备上未找到 DSU 镜像。</string>
+    <string name="partitions_privileged_title">需要特权访问</string>
+    <string name="partitions_privileged_description">分区管理需要 Root 或系统模式，因为它会直接与 gsid 服务通信。</string>
+    <string name="partitions_retry">重试</string>
+    <string name="partitions_image_title">DSU 镜像</string>
+    <string name="partitions_action_replace">替换</string>
+    <string name="partitions_action_export">导出</string>
+    <string name="partitions_action_delete">删除</string>
+    <string name="partitions_progress_adding">正在添加 %1$s…</string>
+    <string name="partitions_progress_replacing">正在替换 %1$s…</string>
+    <string name="partitions_progress_exporting">正在导出 %1$s…</string>
+    <string name="partitions_progress_bytes">已复制 %1$s / %2$s</string>
+    <string name="partitions_done">操作已完成。</string>
+    <string name="partitions_busy">已有另一个分区操作正在运行。</string>
+    <string name="partitions_invalid_name">镜像名称包含不支持的字符。</string>
+    <string name="partitions_duplicate">已存在同名镜像。</string>
+    <string name="partitions_not_found">该镜像已不存在。</string>
+    <string name="partitions_size_invalid">镜像为空或未按 512 字节对齐。</string>
+    <string name="partitions_no_space">没有足够的可用空间容纳此镜像。</string>
+    <string name="partitions_service_unavailable">特权服务不可用。</string>
+    <string name="partitions_operation_failed">分区操作失败。</string>
+    <string name="partitions_export_failed">无法创建目标文件。</string>
+    <string name="partitions_cancelled">传输已取消。</string>
+
+    <string name="inspector_title">GSI 检查器</string>
+    <string name="inspector_description">已安装 DSU 镜像的元数据与文件</string>
+    <string name="inspector_pick_image">选择镜像</string>
+    <string name="inspector_metadata_title">镜像元数据</string>
+    <string name="inspector_meta_android_version">Android 版本</string>
+    <string name="inspector_meta_sdk_version">SDK 版本</string>
+    <string name="inspector_meta_cpu_abi">CPU 架构（ABI）</string>
+    <string name="inspector_meta_vndk">VNDK 版本</string>
+    <string name="inspector_meta_security_patch">安全补丁</string>
+    <string name="inspector_meta_fingerprint">构建指纹</string>
+    <string name="inspector_meta_treble">支持 Treble</string>
+    <string name="inspector_breadcrumb_root">镜像根目录</string>
+    <string name="inspector_folder_label">文件夹</string>
+    <string name="inspector_loading_files">正在加载文件…</string>
+    <string name="inspector_empty_dir">此文件夹为空。</string>
+    <string name="inspector_mount_failed">无法挂载或读取该镜像。</string>
+    <string name="inspector_export_failed">无法导出该文件。</string>
+    <string name="inspector_privileged_description">镜像检查需要 Root 模式，因为分区镜像是以只读方式挂载的。</string>
+    <string name="discard_in_progress">正在移除 DSU…</string>
+
+    <!-- GSI compatibility check -->
+    <string name="compat_title">GSI 兼容性检查</string>
+    <string name="compat_level_compatible">兼容</string>
+    <string name="compat_level_likely">大概率兼容</string>
+    <string name="compat_level_risky">有风险</string>
+    <string name="compat_level_incompatible">不兼容</string>
+    <string name="compat_boot_chance">预估启动成功率：%1$d%%</string>
+    <string name="compat_boot_chance_caption">基于该镜像和此设备的启发式估算，并非保证。</string>
+    <string name="compat_details_title">镜像与设备</string>
+    <string name="compat_checks_title">检查结果</string>
+    <string name="compat_detail_device">设备</string>
+    <string name="compat_detail_image">镜像</string>
+    <string name="compat_detail_android">Android</string>
+    <string name="compat_detail_sdk">API 级别</string>
+    <string name="compat_detail_abi">CPU 架构（ABI）</string>
+    <string name="compat_detail_vndk">VNDK</string>
+    <string name="compat_detail_filesystem">文件系统</string>
+    <string name="compat_detail_container">容器格式</string>
+    <string name="compat_detail_size">镜像大小</string>
+    <string name="compat_detail_stored">文件大小</string>
+    <string name="compat_detail_free">可用存储</string>
+    <string name="compat_detail_required">需要</string>
+    <string name="compat_detail_unknown">未知</string>
+    <string name="compat_data_safe_title">您当前的数据不会被修改</string>
+    <string name="compat_data_safe_body">DSU 会安装到独立的动态分区，并创建独立的用户数据镜像。您当前的系统和 /data 不会被覆盖。主要风险是客户系统无法启动、浪费存储空间，以及丢失已有的 DSU（如果存在）。</string>
+    <string name="compat_data_limited_title">存储空间紧张，但 /data 不会被覆盖</string>
+    <string name="compat_data_limited_body">DSU 仍然使用独立的分区和用户数据镜像，但可用空间已接近需求下限。安装可能失败或留下临时文件。请删除 DSU 和已准备的文件以回收空间。</string>
+    <string name="compat_cancel_delete">取消并删除</string>
+    <string name="compat_continue">继续安装</string>
+    <string name="compat_install_anyway">仍然安装</string>
+    <string name="compat_dismiss_note">关闭此对话框将取消安装并删除已准备的文件。</string>
+
+    <string name="compat_issue_device_android_too_old_title">设备版本过旧，不支持 DSU</string>
+    <string name="compat_issue_device_android_too_old_detail">DSU 需要 Android 10（API 29）或更高版本。此设备报告的 API 为 %1$s。</string>
+    <string name="compat_issue_device_launched_before_treble_title">设备发布于 Android 9 之前</string>
+    <string name="compat_issue_device_launched_before_treble_detail">设备报告的初始 API 级别为 %1$s。GSI 支持仅对出厂搭载 Android 9（API 28）或更高版本的设备有保证。</string>
+    <string name="compat_issue_device_not_treble_title">Project Treble 不可用</string>
+    <string name="compat_issue_device_not_treble_detail">设备报告 ro.treble.enabled=false。GSI 无法在非 Treble 设备上启动。</string>
+    <string name="compat_issue_device_treble_unknown_title">无法读取 Treble 状态</string>
+    <string name="compat_issue_device_treble_unknown_detail">ro.treble.enabled 不可用。由于设备运行 Android 10 或更高版本，很可能支持 Treble，但无法确认。</string>
+    <string name="compat_issue_device_no_dynamic_partitions_title">缺少动态分区</string>
+    <string name="compat_issue_device_no_dynamic_partitions_detail">DSU 需要 Android 动态分区。设备未报告 ro.boot.dynamic_partitions=true。</string>
+    <string name="compat_issue_device_dsu_running_title">当前正在运行 DSU</string>
+    <string name="compat_issue_device_dsu_running_detail">请先重启回设备原系统，再安装其他 GSI。</string>
+    <string name="compat_issue_device_dsu_installed_title">将替换现有 DSU</string>
+    <string name="compat_issue_device_dsu_installed_detail">已存在一个已安装的 DSU。继续操作将在安装新镜像前放弃它并删除其数据。</string>
+    <string name="compat_issue_device_bootloader_locked_title">Bootloader 似乎已锁定</string>
+    <string name="compat_issue_device_bootloader_locked_detail">在已锁定的 Bootloader 上，DSU 仅接受由 Google 或 OEM 签名的镜像。自定义 GSI 可能无法启动。</string>
+    <string name="compat_issue_device_cross_version_supported_title">支持完整的 VNDK 跨版本</string>
+    <string name="compat_issue_device_cross_version_supported_detail">设备为 vendor 命名空间报告 namespace.default.isolated=true，因此可以启动不同 Android 版本的 GSI。</string>
+    <string name="compat_issue_device_cross_version_unsupported_title">仅支持同版本 GSI</string>
+    <string name="compat_issue_device_cross_version_unsupported_detail">此设备不完全支持 VNDK 跨版本。请使用与 API %1$s 匹配的 GSI。</string>
+    <string name="compat_issue_device_cross_version_unknown_title">无法读取跨版本支持情况</string>
+    <string name="compat_issue_device_cross_version_unknown_detail">VNDK 标识文件不可用。版本兼容性将按保守方式估算。</string>
+    <string name="compat_issue_abi_supported_title">支持该 CPU 架构</string>
+    <string name="compat_issue_abi_supported_detail">此设备支持的 ABI 列表中包含 %1$s。</string>
+    <string name="compat_issue_abi_mismatch_title">CPU 架构不匹配</string>
+    <string name="compat_issue_abi_mismatch_detail">该 GSI 面向 %1$s 构建，但设备支持：%2$s。</string>
+    <string name="compat_issue_abi_unknown_title">CPU 架构未知</string>
+    <string name="compat_issue_abi_unknown_detail">镜像未提供 ro.product.cpu.abi。安装仍可能成功，但在启动前无法验证 ABI。</string>
+    <string name="compat_issue_sdk_supported_title">Android 版本兼容</string>
+    <string name="compat_issue_sdk_supported_detail">GSI 的 API %1$s 与设备的 API %2$s 匹配。</string>
+    <string name="compat_issue_sdk_newer_title">Android 版本较新</string>
+    <string name="compat_issue_sdk_newer_detail">GSI 的 API %1$s 比设备的 API %2$s 更新。已支持跨版本。</string>
+    <string name="compat_issue_sdk_newer_unverified_title">GSI 较新，跨版本支持未经验证</string>
+    <string name="compat_issue_sdk_newer_unverified_detail">GSI 的 API %1$s 比设备的 API %2$s 更新。无法读取设备的 VNDK 跨版本支持情况；启动可能失败。</string>
+    <string name="compat_issue_sdk_older_title">GSI 版本比设备旧</string>
+    <string name="compat_issue_sdk_older_detail">GSI 的 API %1$s 比设备的 API %2$s 旧。即使支持 VNDK 跨版本，也不官方支持较旧的 GSI。</string>
+    <string name="compat_issue_sdk_mismatch_title">GSI 版本不匹配</string>
+    <string name="compat_issue_sdk_mismatch_detail">此设备不支持 VNDK 跨版本，因此只能使用 API %1$s。该镜像面向 API %2$s。</string>
+    <string name="compat_issue_sdk_too_old_title">GSI 不兼容 Treble</string>
+    <string name="compat_issue_sdk_too_old_detail">该镜像面向 API %1$s。Treble GSI 从 API 28（Android 9）开始。</string>
+    <string name="compat_issue_sdk_unknown_title">Android 版本未知</string>
+    <string name="compat_issue_sdk_unknown_detail">已找到 build.prop，但 ro.build.version.sdk 缺失或无效。</string>
+    <string name="compat_issue_vndk_supported_title">VNDK 版本匹配</string>
+    <string name="compat_issue_vndk_supported_detail">镜像与设备均报告 VNDK %1$s。</string>
+    <string name="compat_issue_vndk_mismatch_title">VNDK 版本不匹配</string>
+    <string name="compat_issue_vndk_mismatch_detail">该 GSI 报告 VNDK %1$s，而设备报告 %2$s。跨版本启动无法保证。</string>
+    <string name="compat_issue_image_ext4_title">ext4 系统镜像</string>
+    <string name="compat_issue_image_ext4_detail">该镜像在偏移 1024 处包含 ext4 文件系统，可作为 DSU 系统分区安装。</string>
+    <string name="compat_issue_image_erofs_title">EROFS 系统镜像</string>
+    <string name="compat_issue_image_erofs_detail">该镜像包含 EROFS 文件系统，可作为 DSU 系统分区安装。</string>
+    <string name="compat_issue_image_f2fs_title">F2FS 系统镜像</string>
+    <string name="compat_issue_image_f2fs_detail">系统镜像使用 F2FS 较为罕见。DSU 也许能安装它，但不保证能启动。</string>
+    <string name="compat_issue_image_unknown_title">不支持的镜像格式</string>
+    <string name="compat_issue_image_unknown_detail">该文件不是可识别的 ext4 或 EROFS 系统镜像。请使用单独的 system.img GSI，而不是 boot、super 或整盘镜像。</string>
+    <string name="compat_issue_image_sparse_title">Android 稀疏镜像</string>
+    <string name="compat_issue_image_sparse_detail">该镜像使用 Android 稀疏格式，安装器将自动还原。</string>
+    <string name="compat_issue_image_compressed_title">压缩镜像</string>
+    <string name="compat_issue_image_compressed_detail">检测到 %1$s 压缩，安装过程中将解压该镜像。</string>
+    <string name="compat_issue_image_zip_title">DSU 安装包</string>
+    <string name="compat_issue_image_zip_detail">该 ZIP 将作为 DSU 安装包处理，并逐项安装其内容。</string>
+    <string name="compat_issue_image_full_disk_title">选择了整盘镜像</string>
+    <string name="compat_issue_image_full_disk_detail">该文件包含 GPT 分区表。DSU 需要单一系统镜像，而不是整盘镜像。</string>
+    <string name="compat_issue_image_super_title">选择了 super 分区镜像</string>
+    <string name="compat_issue_image_super_detail">该文件包含 Android super 分区元数据。DSU 无法安装 super 镜像；请使用仅含 system 的 GSI。</string>
+    <string name="compat_issue_image_boot_title">选择了 boot 镜像</string>
+    <string name="compat_issue_image_boot_detail">该文件是 Android boot 镜像，而不是系统 GSI。</string>
+    <string name="compat_issue_image_empty_title">镜像为空</string>
+    <string name="compat_issue_image_empty_detail">所选文件为空或大小无效。</string>
+    <string name="compat_issue_image_not_aligned_title">镜像大小异常</string>
+    <string name="compat_issue_image_not_aligned_detail">镜像大小不是 1024 字节的整数倍。这可能表明文件被截断或填充。</string>
+    <string name="compat_issue_image_size_mismatch_title">镜像大小不匹配</string>
+    <string name="compat_issue_image_size_mismatch_detail">解压后的大小与声明的大小不一致。文件可能已损坏或被截断。</string>
+    <string name="compat_issue_props_unavailable_title">无法读取镜像元数据</string>
+    <string name="compat_issue_props_unavailable_detail">文件系统有效，但无法读取 build.prop。SDK、ABI 和 VNDK 检查将受到限制。</string>
+    <string name="compat_issue_read_error_title">无法读取镜像</string>
+    <string name="compat_issue_read_error_detail">兼容性检查失败：%1$s</string>
+    <string name="compat_issue_zip_no_system_title">安装包中没有系统镜像</string>
+    <string name="compat_issue_zip_no_system_detail">该 ZIP 不包含 .img 条目。DSU 安装包必须包含系统镜像。</string>
+    <string name="compat_issue_zip_multiple_title">安装包中包含多个镜像</string>
+    <string name="compat_issue_zip_multiple_detail">该安装包包含：%1$s。DSU 将安装其中受支持的镜像条目。</string>
+    <string name="compat_issue_storage_low_title">可用存储空间不足</string>
+    <string name="compat_issue_storage_low_detail">安装需要约 %1$s，但 /data 仅剩 %2$s。请释放空间或减小用户数据大小。</string>
+    <string name="compat_issue_storage_gsid_title">可用空间低于 gsid 阈值</string>
+    <string name="compat_issue_storage_gsid_detail">gsid 要求 /data 保持超过 %1$s%% 的可用空间；安装后大约只剩 %2$s%%。</string>
+    <string name="compat_issue_storage_ok_title">存储空间充足</string>
+    <string name="compat_issue_storage_ok_detail">可用空间为 %1$s；安装（含用户数据）约需 %2$s。</string>
+    <string name="compat_issue_data_safe_title">宿主数据不会被修改</string>
+    <string name="compat_issue_data_safe_detail">DSU 只写入自己的系统镜像和用户数据镜像。您当前的系统和 /data 保持原样。</string>
+    <string name="compat_issue_data_limited_title">宿主数据安全，但存储空间紧张</string>
+    <string name="compat_issue_data_limited_detail">宿主系统和 /data 不会被覆盖，但可用空间不足可能导致安装失败或留下临时文件。</string>
+    <string name="compat_issue_security_patch_title">安全补丁较旧</string>
+    <string name="compat_issue_security_patch_detail">该 GSI 的安全补丁（%1$s）比设备的（%2$s）旧。这不会阻止启动，但可能缺少厂商修复。</string>
+    <string name="compat_issue_build_type_title">测试版本</string>
+    <string name="compat_issue_build_type_detail">该 GSI 是 %1$s 版本。测试版本可能不如正式版稳定。</string>
+
+    <!-- Boot diagnostic errors (installation card) -->
+    <string name="boot_err_avb_title">AVB 校验失败</string>
+    <string name="boot_err_avb_detail">Android Verified Boot 正在阻止该 GSI 启动。您需要关闭 AVB 校验。</string>
+    <string name="boot_err_avb_suggestion">刷入已禁用校验的 vbmeta：\nfastboot flash vbmeta vbmeta_disabled.img --disable-verity --disable-verification</string>
+
+    <string name="boot_err_partition_table_title">分区表错误</string>
+    <string name="boot_err_partition_table_detail">读取或修改分区表失败。设备可能无法正确支持动态分区。</string>
+    <string name="boot_err_partition_table_suggestion">请使用适用于您 Android 版本的已修补 gsid 构建</string>
+
+    <string name="boot_err_gsi_incompatible_title">GSI 不兼容</string>
+    <string name="boot_err_gsi_incompatible_detail">所选 GSI 与您的设备不兼容。请检查架构和 VNDK 版本。</string>
+    <string name="boot_err_gsi_incompatible_suggestion">请使用与您设备的 CPU 架构、Android 版本和 VNDK 版本相匹配的 GSI</string>
+
+    <string name="boot_err_kernel_title">内核崩溃 / 不匹配</string>
+    <string name="boot_err_kernel_detail">内核检测到严重错误。该 GSI 可能与您设备的内核不兼容。</string>
+    <string name="boot_err_kernel_suggestion">请尝试为您的内核版本构建的其他 GSI</string>
+
+    <string name="boot_err_bootloop_title">检测到启动循环</string>
+    <string name="boot_err_bootloop_detail">系统正在反复重启。该 GSI 未能正常启动。</string>
+    <string name="boot_err_bootloop_suggestion">1. 尝试其他 GSI\n2. 检查 Bootloader 是否已解锁\n3. 验证 VNDK 兼容性</string>
+
+    <string name="boot_err_ram_title">内存（RAM）不足</string>
+    <string name="boot_err_ram_detail">您的设备可能没有足够的内存来运行所选 GSI。</string>
+    <string name="boot_err_ram_suggestion">请尝试更轻量的 GSI（Go 版本或精简版本）</string>
+
+    <string name="boot_err_vendor_title">Vendor 不匹配</string>
+    <string name="boot_err_vendor_detail">该 GSI 与您设备的 vendor 镜像不兼容。</string>
+    <string name="boot_err_vendor_suggestion">请使用与您的 Android 版本和 VNDK 级别相匹配的 GSI</string>
+
+    <string name="boot_err_dm_verity_title">dm-verity 错误</string>
+    <string name="boot_err_dm_verity_detail">校验启动子系统正在阻止该 GSI。</string>
+    <string name="boot_err_dm_verity_suggestion">请使用 --disable-verity 参数刷入已禁用校验的 vbmeta</string>
+
+    <string name="boot_err_system_server_title">系统服务崩溃</string>
+    <string name="boot_err_system_server_detail">Android 系统服务在启动过程中崩溃。该 GSI 可能存在兼容性问题。</string>
+    <string name="boot_err_system_server_suggestion">请尝试来自可信来源、更稳定的 GSI 构建</string>
+
+    <string name="boot_err_boot_timeout_title">启动超时</string>
+    <string name="boot_err_boot_timeout_detail">系统启动耗时过长。该 GSI 可能卡住或不兼容。</string>
+    <string name="boot_err_boot_timeout_suggestion">首次启动请耐心等待更久，或尝试其他 GSI</string>
+
+    <string name="boot_err_super_title">Super 分区错误</string>
+    <string name="boot_err_super_detail">对 super 分区进行操作失败。</string>
+    <string name="boot_err_super_suggestion">请确保设备正确支持动态分区</string>
+
+    <string name="boot_err_slot_switch_title">槽位切换错误</string>
+    <string name="boot_err_slot_switch_detail">无法为 DSU 切换启动槽位。</string>
+
+    <string name="boot_err_firmware_title">固件不匹配</string>
+    <string name="boot_err_firmware_detail">设备固件与该 GSI 不兼容。</string>
+    <string name="boot_err_firmware_suggestion">请将设备固件更新到最新版本</string>
+
+    <string name="boot_err_treble_title">Treble 不兼容</string>
+    <string name="boot_err_treble_detail">您的设备可能不符合 Treble 规范，或 Treble 实现有误。</string>
+    <string name="boot_err_treble_suggestion">请使用 Treble Info 应用检查 Treble 兼容性</string>
+
+    <string name="boot_err_vndk_title">VNDK 版本不匹配</string>
+    <string name="boot_err_vndk_detail">该 GSI 的 VNDK 版本与您的设备不一致。</string>
+    <string name="boot_err_vndk_suggestion">请检查您的 VNDK：getprop ro.vndk.version\n使用 VNDK 匹配的 GSI</string>
+
+    <string name="boot_err_cpu_arch_title">CPU 架构不匹配</string>
+    <string name="boot_err_cpu_arch_detail">该 GSI 是为其他 CPU 架构构建的。</string>
+    <string name="boot_err_cpu_arch_suggestion">请使用与您设备架构（arm64-v8a、armeabi-v7a 等）匹配的 GSI</string>
+
+    <string name="boot_err_unknown_title">未知启动失败</string>
+    <string name="boot_err_unknown_detail">启动过程中发生了未知错误。请查看日志了解详情。</string>
+    <string name="boot_err_unknown_suggestion">请查看日志，并在 XDA 论坛上搜索您的设备 + GSI 组合</string>
+
+    <!-- Widget -->
+    <string name="widget_installing_title">正在安装 GSI</string>
+    <string name="widget_installing_subtitle">请勿关闭应用</string>
+    <string name="widget_running_title">DSU 运行中</string>
+    <string name="widget_running_subtitle">动态系统已激活</string>
+    <string name="widget_installed_title">GSI 已安装</string>
+    <string name="widget_installed_subtitle">可以启动</string>
+    <string name="widget_not_installed_title">未安装</string>
+    <string name="widget_not_installed_subtitle">尚未准备 GSI 镜像</string>
+    <string name="widget_reboot">重启</string>
+
+    <!-- Misc UI -->
+    <string name="state_success">成功！</string>
+    <string name="state_error">错误</string>
+    <string name="inspector_empty_hint">这里空空如也…</string>
+    <string name="logs_type_app">应用</string>
+    <string name="logs_type_boot">启动</string>
+    <string name="compat_container_sparse">稀疏</string>
+    <string name="compat_container_raw">原始镜像</string>
+    <string name="logs_title_gsi_snapshot">GSI 快照</string>
+    <string name="compat_container_images">%1$d 个镜像</string>
+    <string name="privileged_none_available">无可用特权</string>
+    <string name="privileged_available_via">可用方式：%1$s</string>
+    <string name="role_main_developer">主要开发者</string>
+    <string name="role_original_fork_author">原始分支作者</string>
+    <string name="role_dsu_sideloader_author">DSU-Sideloader-Plus 作者</string>
+    <string name="icon_desc">图标</string>
+
+</resources>

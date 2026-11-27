@@ -48,7 +48,7 @@ class Preparation(
             }
 
             else -> {
-                throw Exception("Unsupported filetype")
+                throw Exception("不支持的文件类型")
             }
         }
         if (!job.isCancelled) {
@@ -67,7 +67,7 @@ class Preparation(
                 "img" -> prepareImage(userSelectedFileUri)
                 "gz", "gzip" -> prepareGz(userSelectedFileUri)
                 "zip" -> prepareZip(userSelectedFileUri)
-                else -> throw Exception("Unsupported filetype")
+                else -> throw Exception("不支持的文件类型")
             }
 
         val preparedUri = preparedFilePair.first
